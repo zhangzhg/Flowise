@@ -3,6 +3,7 @@ import moment from 'moment/moment'
 import * as PropTypes from 'prop-types'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import {
@@ -220,6 +221,7 @@ const APIKey = () => {
     const dispatch = useDispatch()
     useNotifier()
     const { error, setError } = useError()
+    const { t } = useTranslation()
 
     const enqueueSnackbar = (...args) => dispatch(enqueueSnackbarAction(...args))
     const closeSnackbar = (...args) => dispatch(closeSnackbarAction(...args))
@@ -389,9 +391,9 @@ const APIKey = () => {
                         <ViewHeader
                             onSearchChange={onSearchChange}
                             search={true}
-                            searchPlaceholder='Search API Keys'
-                            title='API Keys'
-                            description='Flowise API & SDK authentication keys'
+                            searchPlaceholder={t('apikey.searchPlaceholder')}
+                            title={t('apikey.title')}
+                            description={t('apikey.description')}
                         >
                             <StyledPermissionButton
                                 permissionId={'apikeys:create'}
@@ -413,7 +415,7 @@ const APIKey = () => {
                                         alt='APIEmptySVG'
                                     />
                                 </Box>
-                                <div>No API Keys Yet</div>
+                                <div>{t('apikey.noApiKeys')}</div>
                             </Stack>
                         ) : (
                             <>

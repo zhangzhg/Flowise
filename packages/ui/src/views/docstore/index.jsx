@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import { Box, Button, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Stack, ToggleButton, ToggleButtonGroup } from '@mui/material'
@@ -53,6 +54,7 @@ const Documents = () => {
     const { hasPermission } = useAuth()
     const getAllDocumentStores = useApi(documentsApi.getAllDocumentStores)
     const { error } = useError()
+    const { t } = useTranslation()
     useNotifier()
 
     const enqueueSnackbar = (...args) => dispatch(enqueueSnackbarAction(...args))
@@ -328,9 +330,9 @@ const Documents = () => {
                     <ViewHeader
                         onSearchChange={onSearchChange}
                         search={hasDocStores}
-                        searchPlaceholder='Search Name'
-                        title='Document Store'
-                        description='Store and upsert documents for LLM retrieval (RAG)'
+                        searchPlaceholder={t('documentStores.searchPlaceholder')}
+                        title={t('documentStores.title')}
+                        description={t('documentStores.description')}
                     >
                         {hasDocStores && (
                             <ToggleButtonGroup
@@ -348,7 +350,7 @@ const Documents = () => {
                                     }}
                                     variant='contained'
                                     value='card'
-                                    title='Card View'
+                                    title={t('documentStores.cardView')}
                                 >
                                     <IconLayoutGrid />
                                 </ToggleButton>
@@ -360,7 +362,7 @@ const Documents = () => {
                                     }}
                                     variant='contained'
                                     value='list'
-                                    title='List View'
+                                    title={t('documentStores.listView')}
                                 >
                                     <IconList />
                                 </ToggleButton>
@@ -374,7 +376,7 @@ const Documents = () => {
                             startIcon={<IconPlus />}
                             id='btn_createVariable'
                         >
-                            Add New
+                            {t('documentStores.addNew')}
                         </StyledPermissionButton>
                     </ViewHeader>
                     {!hasDocStores ? (
@@ -386,7 +388,7 @@ const Documents = () => {
                                     alt='doc_store_empty'
                                 />
                             </Box>
-                            <div>No Document Stores Created Yet</div>
+                            <div>{t('documentStores.noDocumentStores')}</div>
                         </Stack>
                     ) : (
                         <React.Fragment>

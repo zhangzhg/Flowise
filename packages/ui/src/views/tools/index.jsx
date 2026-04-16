@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import { Box, Stack, ButtonGroup, Skeleton, ToggleButtonGroup, ToggleButton } from '@mui/material'
@@ -32,6 +33,7 @@ const Tools = () => {
     const theme = useTheme()
     const getAllToolsApi = useApi(toolsApi.getAllTools)
     const { error, setError } = useError()
+    const { t } = useTranslation()
 
     const [isLoading, setLoading] = useState(true)
     const [showDialog, setShowDialog] = useState(false)
@@ -161,9 +163,9 @@ const Tools = () => {
                         <ViewHeader
                             onSearchChange={onSearchChange}
                             search={true}
-                            searchPlaceholder='Search Tools'
-                            title='Tools'
-                            description='External functions or APIs the agent can use to take action'
+                            searchPlaceholder={t('tools.searchPlaceholder')}
+                            title={t('tools.title')}
+                            description={t('tools.description')}
                         >
                             <ToggleButtonGroup
                                 sx={{ borderRadius: 2, maxHeight: 40 }}
@@ -181,7 +183,7 @@ const Tools = () => {
                                     }}
                                     variant='contained'
                                     value='card'
-                                    title='Card View'
+                                    title={t('tools.cardView')}
                                 >
                                     <IconLayoutGrid />
                                 </ToggleButton>
@@ -193,7 +195,7 @@ const Tools = () => {
                                     }}
                                     variant='contained'
                                     value='list'
-                                    title='List View'
+                                    title={t('tools.listView')}
                                 >
                                     <IconList />
                                 </ToggleButton>
@@ -264,7 +266,7 @@ const Tools = () => {
                                         alt='ToolEmptySVG'
                                     />
                                 </Box>
-                                <div>No Tools Created Yet</div>
+                                <div>{t('tools.noTools')}</div>
                             </Stack>
                         )}
                     </Stack>

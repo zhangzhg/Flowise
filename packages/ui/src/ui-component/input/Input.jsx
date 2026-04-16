@@ -147,7 +147,8 @@ export const Input = ({ inputParam, value, nodes, edges, nodeId, onChange, onBlu
                             step: inputParam.step ?? 1,
                             style: {
                                 height: inputParam.rows ? '90px' : 'inherit'
-                            }
+                            },
+                            autoComplete: inputParam.autocomplete || 'off'
                         }}
                         endAdornment={
                             hasPasswordToggle ? (

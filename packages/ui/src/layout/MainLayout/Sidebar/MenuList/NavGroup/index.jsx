@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import { useTheme } from '@mui/material/styles'
@@ -10,11 +11,18 @@ import NavCollapse from '../NavCollapse'
 import { useAuth } from '@/hooks/useAuth'
 import { Available } from '@/ui-component/rbac/available'
 
+const groupTitleMap = {
+    evaluations: 'menu.evaluations',
+    management: 'menu.management',
+    others: 'menu.others'
+}
+
 // ==============================|| SIDEBAR MENU LIST GROUP ||============================== //
 
 const NavGroup = ({ item }) => {
     const theme = useTheme()
     const { hasPermission, hasDisplay } = useAuth()
+    const { t } = useTranslation()
 
     const listItems = (menu, level = 1) => {
         // Filter based on display and permission
@@ -97,7 +105,7 @@ const NavGroup = ({ item }) => {
                             <List
                                 subheader={
                                     <Typography variant='caption' sx={{ ...theme.typography.subMenuCaption }} display='block' gutterBottom>
-                                        {group.title}
+                                        {groupTitleMap[group.id] ? t(groupTitleMap[group.id]) : group.title}
                                     </Typography>
                                 }
                                 sx={{ p: '16px', py: 2, display: 'flex', flexDirection: 'column', gap: 1 }}

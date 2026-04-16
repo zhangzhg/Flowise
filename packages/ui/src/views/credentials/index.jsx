@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
+import { useTranslation } from 'react-i18next'
 import moment from 'moment'
 
 // material-ui
@@ -79,6 +80,7 @@ const Credentials = () => {
     const dispatch = useDispatch()
     useNotifier()
     const { error, setError } = useError()
+    const { t } = useTranslation()
 
     const enqueueSnackbar = (...args) => dispatch(enqueueSnackbarAction(...args))
     const closeSnackbar = (...args) => dispatch(closeSnackbarAction(...args))
@@ -245,9 +247,9 @@ const Credentials = () => {
                         <ViewHeader
                             onSearchChange={onSearchChange}
                             search={true}
-                            searchPlaceholder='Search Credentials'
-                            title='Credentials'
-                            description='API keys, tokens, and secrets for 3rd party integrations'
+                            searchPlaceholder={t('credentials.searchPlaceholder')}
+                            title={t('credentials.title')}
+                            description={t('credentials.description')}
                         >
                             <StyledPermissionButton
                                 permissionId='credentials:create'
@@ -268,7 +270,7 @@ const Credentials = () => {
                                         alt='CredentialEmptySVG'
                                     />
                                 </Box>
-                                <div>No Credentials Yet</div>
+                                <div>{t('credentials.noCredentials')}</div>
                             </Stack>
                         ) : (
                             <TableContainer

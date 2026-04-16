@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import moment from 'moment/moment'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import {
@@ -56,7 +57,7 @@ const EvalDatasets = () => {
     const theme = useTheme()
     const { confirm } = useConfirm()
     const { error } = useError()
-
+    const { t } = useTranslation()
     const customization = useSelector((state) => state.customization)
 
     useNotifier()
@@ -205,7 +206,7 @@ const EvalDatasets = () => {
                             isEditButton={false}
                             onSearchChange={onSearchChange}
                             search={true}
-                            title='Datasets'
+                            title={t('datasets.title')}
                             description=''
                         >
                             <StyledPermissionButton
@@ -215,7 +216,7 @@ const EvalDatasets = () => {
                                 onClick={addNew}
                                 startIcon={<IconPlus />}
                             >
-                                Add New
+                                {t('datasets.addNew')}
                             </StyledPermissionButton>
                         </ViewHeader>
                         {!isLoading && datasets.length <= 0 ? (
@@ -227,7 +228,7 @@ const EvalDatasets = () => {
                                         alt='empty_datasetSVG'
                                     />
                                 </Box>
-                                <div>No Datasets Yet</div>
+                                <div>{t('datasets.noDatasets')}</div>
                             </Stack>
                         ) : (
                             <>

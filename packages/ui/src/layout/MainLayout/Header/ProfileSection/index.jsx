@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { closeSnackbar as closeSnackbarAction, enqueueSnackbar as enqueueSnackbarAction, REMOVE_DIRTY } from '@/store/actions'
 import { exportData, stringify } from '@/utils/exportImport'
@@ -54,26 +55,43 @@ import exportImportApi from '@/api/exportimport'
 import useApi from '@/hooks/useApi'
 import { getErrorMessage } from '@/utils/errorHandler'
 
-const dataToExport = [
-    'Agentflows',
-    'Agentflows V2',
-    'Assistants Custom',
-    'Assistants OpenAI',
-    'Assistants Azure',
-    'Chatflows',
-    'Chat Messages',
-    'Chat Feedbacks',
-    'Custom Templates',
-    'Document Stores',
-    'Executions',
-    'Tools',
-    'Variables'
+const dataToExportKeys = [
+    'profile.agentflows',
+    'profile.agentflowsV2',
+    'profile.assistantsCustom',
+    'profile.assistantsOpenAI',
+    'profile.assistantsAzure',
+    'profile.chatflows',
+    'profile.chatMessages',
+    'profile.chatFeedbacks',
+    'profile.customTemplates',
+    'profile.documentStores',
+    'profile.executions',
+    'profile.tools',
+    'profile.variables'
 ]
+
+const dataToExportMap = {
+    'profile.agentflows': 'agentflow',
+    'profile.agentflowsV2': 'agentflowv2',
+    'profile.assistantsCustom': 'assistantCustom',
+    'profile.assistantsOpenAI': 'assistantOpenAI',
+    'profile.assistantsAzure': 'assistantAzure',
+    'profile.chatflows': 'chatflow',
+    'profile.chatMessages': 'chat_message',
+    'profile.chatFeedbacks': 'chat_feedback',
+    'profile.customTemplates': 'custom_template',
+    'profile.documentStores': 'document_store',
+    'profile.executions': 'execution',
+    'profile.tools': 'tool',
+    'profile.variables': 'variable'
+}
 
 const ExportDialog = ({ show, onCancel, onExport }) => {
     const portalElement = document.getElementById('portal')
+    const { t } = useTranslation()
 
-    const [selectedData, setSelectedData] = useState(dataToExport)
+    const [selectedData, setSelectedData] = useState(dataToExportKeys)
     const [isExporting, setIsExporting] = useState(false)
 
     useEffect(() => {
@@ -96,7 +114,7 @@ const ExportDialog = ({ show, onCancel, onExport }) => {
             aria-describedby='export-dialog-description'
         >
             <DialogTitle sx={{ fontSize: '1rem' }} id='export-dialog-title'>
-                {!isExporting ? 'Select Data to Export' : 'Exporting..'}
+                {!isExporting ? t('profile.selectDataToExport') : t('profile.exporting')}
             </DialogTitle>
             <DialogContent>
                 {!isExporting && (
@@ -108,24 +126,24 @@ const ExportDialog = ({ show, onCancel, onExport }) => {
                             gap: 1
                         }}
                     >
-                        {dataToExport.map((data, index) => (
+                        {dataToExportKeys.map((dataKey, index) => (
                             <FormControlLabel
                                 key={index}
                                 size='small'
                                 control={
                                     <Checkbox
                                         color='success'
-                                        checked={selectedData.includes(data)}
+                                        checked={selectedData.includes(dataKey)}
                                         onChange={(event) => {
                                             setSelectedData(
                                                 event.target.checked
-                                                    ? [...selectedData, data]
-                                                    : selectedData.filter((item) => item !== data)
+                                                    ? [...selectedData, dataKey]
+                                                    : selectedData.filter((item) => item !== dataKey)
                                             )
                                         }}
                                     />
                                 }
-                                label={data}
+                                label={t(dataKey)}
                             />
                         ))}
                     </Stack>
@@ -142,14 +160,14 @@ const ExportDialog = ({ show, onCancel, onExport }) => {
                                 src={ExportingGIF}
                                 alt='ExportingGIF'
                             />
-                            <span>Exporting data might takes a while</span>
+                            <span>{t('profile.exportingDataTakesTime')}</span>
                         </div>
                     </Box>
                 )}
             </DialogContent>
             {!isExporting && (
                 <DialogActions>
-                    <Button onClick={onCancel}>Cancel</Button>
+                    <Button onClick={onCancel}>{t('profile.cancel')}</Button>
                     <Button
                         disabled={selectedData.length === 0}
                         variant='contained'
@@ -158,7 +176,7 @@ const ExportDialog = ({ show, onCancel, onExport }) => {
                             onExport(selectedData)
                         }}
                     >
-                        Export
+                        {t('profile.exportBtn')}
                     </Button>
                 </DialogActions>
             )}
@@ -176,11 +194,12 @@ ExportDialog.propTypes = {
 
 const ImportDialog = ({ show }) => {
     const portalElement = document.getElementById('portal')
+    const { t } = useTranslation()
 
     const component = show ? (
         <Dialog open={show} fullWidth maxWidth='sm' aria-labelledby='import-dialog-title' aria-describedby='import-dialog-description'>
             <DialogTitle sx={{ fontSize: '1rem' }} id='import-dialog-title'>
-                Importing...
+                {t('profile.importing')}
             </DialogTitle>
             <DialogContent>
                 <Box sx={{ height: 'auto', display: 'flex', justifyContent: 'center', mb: 3 }}>
@@ -194,7 +213,7 @@ const ImportDialog = ({ show }) => {
                             src={ExportingGIF}
                             alt='ImportingGIF'
                         />
-                        <span>Importing data might takes a while</span>
+                        <span>{t('profile.importingDataTakesTime')}</span>
                     </div>
                 </Box>
             </DialogContent>
@@ -212,6 +231,7 @@ ImportDialog.propTypes = {
 
 const ProfileSection = ({ handleLogout }) => {
     const theme = useTheme()
+    const { t } = useTranslation()
 
     const customization = useSelector((state) => state.customization)
 
@@ -287,7 +307,7 @@ const ProfileSection = ({ handleLogout }) => {
         setImportDialogOpen(false)
         dispatch({ type: REMOVE_DIRTY })
         enqueueSnackbar({
-            message: `Import All successful`,
+            message: t('profile.importAllSuccessful'),
             options: {
                 key: new Date().getTime() + Math.random(),
                 variant: 'success',
@@ -306,19 +326,10 @@ const ProfileSection = ({ handleLogout }) => {
 
     const onExport = (data) => {
         const body = {}
-        if (data.includes('Agentflows')) body.agentflow = true
-        if (data.includes('Agentflows V2')) body.agentflowv2 = true
-        if (data.includes('Assistants Custom')) body.assistantCustom = true
-        if (data.includes('Assistants OpenAI')) body.assistantOpenAI = true
-        if (data.includes('Assistants Azure')) body.assistantAzure = true
-        if (data.includes('Chatflows')) body.chatflow = true
-        if (data.includes('Chat Messages')) body.chat_message = true
-        if (data.includes('Chat Feedbacks')) body.chat_feedback = true
-        if (data.includes('Custom Templates')) body.custom_template = true
-        if (data.includes('Document Stores')) body.document_store = true
-        if (data.includes('Executions')) body.execution = true
-        if (data.includes('Tools')) body.tool = true
-        if (data.includes('Variables')) body.variable = true
+        for (const key of data) {
+            const field = dataToExportMap[key]
+            if (field) body[field] = true
+        }
 
         exportAllApi.request(body)
     }
@@ -334,12 +345,12 @@ const ProfileSection = ({ handleLogout }) => {
     useEffect(() => {
         if (importAllApi.error) {
             setImportDialogOpen(false)
-            let errMsg = 'Invalid Imported File'
+            let errMsg = t('profile.invalidImportedFile')
             let error = importAllApi.error
             if (error?.response?.data) {
                 errMsg = typeof error.response.data === 'object' ? error.response.data.message : error.response.data
             }
-            errorFailed(`Failed to import: ${errMsg}`)
+            errorFailed(t('profile.failedToImport', { message: errMsg }))
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [importAllApi.error])
@@ -358,7 +369,7 @@ const ProfileSection = ({ handleLogout }) => {
                 linkElement.setAttribute('download', exportAllApi.data.FileDefaultName)
                 linkElement.click()
             } catch (error) {
-                errorFailed(`Failed to export all: ${getErrorMessage(error)}`)
+                errorFailed(t('profile.failedToExport', { message: getErrorMessage(error) }))
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -367,12 +378,12 @@ const ProfileSection = ({ handleLogout }) => {
     useEffect(() => {
         if (exportAllApi.error) {
             setExportDialogOpen(false)
-            let errMsg = 'Internal Server Error'
+            let errMsg = t('profile.internalServerError')
             let error = exportAllApi.error
             if (error?.response?.data) {
                 errMsg = typeof error.response.data === 'object' ? error.response.data.message : error.response.data
             }
-            errorFailed(`Failed to export: ${errMsg}`)
+            errorFailed(t('profile.failedToExport', { message: errMsg }))
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [exportAllApi.error])
@@ -438,7 +449,7 @@ const ProfileSection = ({ handleLogout }) => {
                                     ) : (
                                         <Box sx={{ p: 2 }}>
                                             <Typography component='span' variant='h4'>
-                                                User
+                                                {t('profile.user')}
                                             </Typography>
                                         </Box>
                                     )}
@@ -471,7 +482,9 @@ const ProfileSection = ({ handleLogout }) => {
                                                     <ListItemIcon>
                                                         <IconFileExport stroke={1.5} size='1.3rem' />
                                                     </ListItemIcon>
-                                                    <ListItemText primary={<Typography variant='body2'>Export</Typography>} />
+                                                    <ListItemText
+                                                        primary={<Typography variant='body2'>{t('profile.export')}</Typography>}
+                                                    />
                                                 </PermissionListItemButton>
                                                 <PermissionListItemButton
                                                     permissionId='workspace:import'
@@ -483,7 +496,9 @@ const ProfileSection = ({ handleLogout }) => {
                                                     <ListItemIcon>
                                                         <IconFileUpload stroke={1.5} size='1.3rem' />
                                                     </ListItemIcon>
-                                                    <ListItemText primary={<Typography variant='body2'>Import</Typography>} />
+                                                    <ListItemText
+                                                        primary={<Typography variant='body2'>{t('profile.import')}</Typography>}
+                                                    />
                                                 </PermissionListItemButton>
                                                 <input ref={inputRef} type='file' hidden onChange={fileChange} accept='.json' />
                                                 <ListItemButton
@@ -496,7 +511,9 @@ const ProfileSection = ({ handleLogout }) => {
                                                     <ListItemIcon>
                                                         <IconInfoCircle stroke={1.5} size='1.3rem' />
                                                     </ListItemIcon>
-                                                    <ListItemText primary={<Typography variant='body2'>Version</Typography>} />
+                                                    <ListItemText
+                                                        primary={<Typography variant='body2'>{t('profile.version')}</Typography>}
+                                                    />
                                                 </ListItemButton>
                                                 {isAuthenticated && !currentUser.isSSO && (
                                                     <ListItemButton
@@ -509,7 +526,11 @@ const ProfileSection = ({ handleLogout }) => {
                                                         <ListItemIcon>
                                                             <IconUserEdit stroke={1.5} size='1.3rem' />
                                                         </ListItemIcon>
-                                                        <ListItemText primary={<Typography variant='body2'>Account Settings</Typography>} />
+                                                        <ListItemText
+                                                            primary={
+                                                                <Typography variant='body2'>{t('profile.accountSettings')}</Typography>
+                                                            }
+                                                        />
                                                     </ListItemButton>
                                                 )}
                                                 <ListItemButton
@@ -519,7 +540,9 @@ const ProfileSection = ({ handleLogout }) => {
                                                     <ListItemIcon>
                                                         <IconLogout stroke={1.5} size='1.3rem' />
                                                     </ListItemIcon>
-                                                    <ListItemText primary={<Typography variant='body2'>Logout</Typography>} />
+                                                    <ListItemText
+                                                        primary={<Typography variant='body2'>{t('profile.logout')}</Typography>}
+                                                    />
                                                 </ListItemButton>
                                             </List>
                                         </Box>

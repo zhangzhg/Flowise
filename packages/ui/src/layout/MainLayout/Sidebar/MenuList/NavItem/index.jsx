@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import { forwardRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import { useTheme } from '@mui/material/styles'
@@ -21,6 +22,32 @@ const NavItem = ({ item, level, navType, onClick, onUploadFile }) => {
     const dispatch = useDispatch()
     const customization = useSelector((state) => state.customization)
     const matchesSM = useMediaQuery(theme.breakpoints.down('lg'))
+    const { t } = useTranslation()
+
+    const menuTitleMap = {
+        chatflows: 'menu.chatflows',
+        agentflows: 'menu.agentflows',
+        executions: 'menu.executions',
+        assistants: 'menu.assistants',
+        marketplaces: 'menu.marketplaces',
+        tools: 'menu.tools',
+        credentials: 'menu.credentials',
+        variables: 'menu.variables',
+        apikey: 'menu.apikey',
+        'document-stores': 'menu.documentStores',
+        datasets: 'menu.datasets',
+        evaluators: 'menu.evaluators',
+        evaluations: 'menu.evaluations',
+        sso: 'menu.sso',
+        roles: 'menu.roles',
+        users: 'menu.users',
+        workspaces: 'menu.workspaces',
+        'login-activity': 'menu.loginActivity',
+        logs: 'menu.logs',
+        account: 'menu.accountSettings'
+    }
+
+    const translatedTitle = menuTitleMap[item.id] ? t(menuTitleMap[item.id]) : item.title
 
     const Icon = item.icon
     const itemIcon = item?.icon ? (
@@ -118,7 +145,7 @@ const NavItem = ({ item, level, navType, onClick, onUploadFile }) => {
                         color='inherit'
                         sx={{ my: 0.5 }}
                     >
-                        {item.title}
+                        {translatedTitle}
                     </Typography>
                 }
                 secondary={

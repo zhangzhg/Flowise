@@ -3,6 +3,8 @@ import App from '@/App'
 import { store } from '@/store'
 import { createRoot } from 'react-dom/client'
 
+import '@/i18n'
+
 // style + assets
 import '@/assets/scss/style.scss'
 
