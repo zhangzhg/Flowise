@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, memo } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import { useTheme } from '@mui/material/styles'
@@ -74,6 +75,12 @@ const AddNodes = ({ nodesData, node, isAgentCanvas, isAgentflowv2, onFlowGenerat
     const theme = useTheme()
     const customization = useSelector((state) => state.customization)
     const dispatch = useDispatch()
+    const { t } = useTranslation()
+
+    const getTranslatedDescription = (nd) => {
+        const translationKey = `nodes.${nd.name}`
+        return t(translationKey, { defaultValue: nd.description })
+    }
 
     const [searchValue, setSearchValue] = useState('')
     const [nodes, setNodes] = useState({})
@@ -752,7 +759,7 @@ const AddNodes = ({ nodesData, node, isAgentCanvas, isAgentflowv2, onFlowGenerat
                                                                                             )}
                                                                                         </>
                                                                                     }
-                                                                                    secondary={node.description}
+                                                                                    secondary={getTranslatedDescription(node)}
                                                                                 />
                                                                             </ListItem>
                                                                         </ListItemButton>
