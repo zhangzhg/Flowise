@@ -253,5 +253,213 @@
         "refresh": "Refresh",
         "settings": "Settings",
         "language": "Language"
+    },
+    "templates": {
+        "chatflows": {
+            "Advanced Structured Output Parser": {
+                "name": "Advanced Structured Output Parser",
+                "description": "Parse LLM output into structured JSON format with schema validation"
+            },
+            "CSV Agent": {
+                "name": "CSV Agent",
+                "description": "Agent that can answer questions from CSV files"
+            },
+            "Context Chat Engine": {
+                "name": "Context Chat Engine",
+                "description": "Answer question based on retrieved documents (context) while remembering previous conversations"
+            },
+            "Conversation Chain": {
+                "name": "Conversation Chain",
+                "description": "Basic conversation chain with memory for multi-turn chat"
+            },
+            "Conversational Agent": {
+                "name": "Conversational Agent",
+                "description": "Agent that can use tools and have conversations"
+            },
+            "Conversational Retrieval QA Chain": {
+                "name": "Conversational Retrieval QA Chain",
+                "description": "Question answering over documents with conversation memory"
+            },
+            "Github Docs QnA": {
+                "name": "Github Docs QnA",
+                "description": "Question answering from GitHub repository documentation"
+            },
+            "HuggingFace LLM Chain": {
+                "name": "HuggingFace LLM Chain",
+                "description": "LLM chain using HuggingFace models"
+            },
+            "Image Generation": {
+                "name": "Image Generation",
+                "description": "Generate images using DALL-E or Stable Diffusion"
+            },
+            "Input Moderation": {
+                "name": "Input Moderation",
+                "description": "Moderate user input for harmful content"
+            },
+            "LLM Chain": {
+                "name": "LLM Chain",
+                "description": "Basic example of stateless (no memory) LLM Chain with a Prompt Template and LLM Model"
+            },
+            "List Output Parser": {
+                "name": "List Output Parser",
+                "description": "Parse LLM output into a list format"
+            },
+            "Local QnA": {
+                "name": "Local QnA",
+                "description": "Question answering from local documents"
+            },
+            "Multiple Documents QnA": {
+                "name": "Multiple Documents QnA",
+                "description": "Question answering from multiple document sources"
+            },
+            "OpenAI Assistant": {
+                "name": "OpenAI Assistant",
+                "description": "Use OpenAI Assistant API for conversations"
+            },
+            "OpenAPI YAML Agent": {
+                "name": "OpenAPI YAML Agent",
+                "description": "Agent that can interact with OpenAPI endpoints"
+            },
+            "Prompt Chaining": {
+                "name": "Prompt Chaining",
+                "description": "Chain multiple prompts together sequentially"
+            },
+            "Query Engine": {
+                "name": "Query Engine",
+                "description": "Query engine for document retrieval and answering"
+            },
+            "ReAct Agent": {
+                "name": "ReAct Agent",
+                "description": "Reasoning and Acting agent for complex tasks"
+            },
+            "Replicate LLM": {
+                "name": "Replicate LLM",
+                "description": "LLM chain using Replicate models"
+            },
+            "SQL DB Chain": {
+                "name": "SQL DB Chain",
+                "description": "Natural language to SQL query chain"
+            },
+            "Simple Chat Engine": {
+                "name": "Simple Chat Engine",
+                "description": "Simple chat engine for basic conversations"
+            },
+            "SubQuestion Query Engine": {
+                "name": "SubQuestion Query Engine",
+                "description": "Break complex questions into sub-questions"
+            },
+            "Tool Agent": {
+                "name": "Tool Agent",
+                "description": "Agent that can use various tools"
+            }
+        },
+        "agentflowsv2": {
+            "Agentic RAG": {
+                "name": "Agentic RAG",
+                "description": "Advanced RAG with agentic capabilities"
+            },
+            "Agents Handoff": {
+                "name": "Agents Handoff",
+                "description": "Handoff between multiple specialized agents"
+            },
+            "Deep Research With Multi-turn Conversations": {
+                "name": "Deep Research With Multi-turn Conversations",
+                "description": "Deep research agent with conversation memory"
+            },
+            "Deep Research With Subagents": {
+                "name": "Deep Research With Subagents",
+                "description": "Deep research using multiple sub-agents"
+            },
+            "Human In The Loop": {
+                "name": "Human In The Loop",
+                "description": "Agent workflow with human approval steps"
+            },
+            "Interacting With API": {
+                "name": "Interacting With API",
+                "description": "Agent that interacts with external APIs"
+            },
+            "Iterations": {
+                "name": "Iterations",
+                "description": "Iterative agent workflow for repeated tasks"
+            },
+            "SQL Agent": {
+                "name": "SQL Agent",
+                "description": "Agent specialized in SQL database operations"
+            },
+            "Simple RAG": {
+                "name": "Simple RAG",
+                "description": "A basic RAG agent that can retrieve documents from document store and answer questions"
+            },
+            "Structured Output": {
+                "name": "Structured Output",
+                "description": "Agent that produces structured JSON output"
+            },
+            "Supervisor Worker": {
+                "name": "Supervisor Worker",
+                "description": "Supervisor agent coordinating worker agents"
+            },
+            "Translator": {
+                "name": "Translator",
+                "description": "Multi-language translation agent"
+            },
+            "Workplace Chat": {
+                "name": "Workplace Chat",
+                "description": "Workplace communication assistant"
+            }
+        },
+        "tools": {
+            "Add Hubspot Contact": {
+                "name": "Add Hubspot Contact",
+                "description": "Add a new contact to Hubspot CRM"
+            },
+            "Create Airtable Record": {
+                "name": "Create Airtable Record",
+                "description": "Create a new record in Airtable"
+            },
+            "Get Current DateTime": {
+                "name": "Get Current DateTime",
+                "description": "Get the current date and time"
+            },
+            "Get Stock Mover": {
+                "name": "Get Stock Mover",
+                "description": "Get stock market mover information"
+            },
+            "Make Webhook": {
+                "name": "Make Webhook",
+                "description": "Trigger Make (Integromat) webhook"
+            },
+            "Perplexity AI Search": {
+                "name": "Perplexity AI Search",
+                "description": "Search using Perplexity AI"
+            },
+            "Print or Export Text Document": {
+                "name": "Print or Export Text Document",
+                "description": "Print or export text to document"
+            },
+            "Send Discord Message": {
+                "name": "Send Discord Message",
+                "description": "Send message to Discord channel"
+            },
+            "Send Slack Message": {
+                "name": "Send Slack Message",
+                "description": "Send message to Slack channel"
+            },
+            "Send Teams Message": {
+                "name": "Send Teams Message",
+                "description": "Send message to Microsoft Teams"
+            },
+            "SendGrid Email": {
+                "name": "SendGrid Email",
+                "description": "Send email via SendGrid"
+            },
+            "Spider Web Scraper": {
+                "name": "Spider Web Scraper",
+                "description": "Scrape web content using Spider"
+            },
+            "Spider Web Search & Scrape": {
+                "name": "Spider Web Search & Scrape",
+                "description": "Search and scrape web content"
+            }
+        }
     }
 }

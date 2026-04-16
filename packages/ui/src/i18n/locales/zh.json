@@ -253,5 +253,213 @@
         "refresh": "刷新",
         "settings": "设置",
         "language": "语言"
+    },
+    "templates": {
+        "chatflows": {
+            "Advanced Structured Output Parser": {
+                "name": "高级结构化输出解析器",
+                "description": "将 LLM 输出解析为带有架构验证的结构化 JSON 格式"
+            },
+            "CSV Agent": {
+                "name": "CSV 智能体",
+                "description": "可以回答 CSV 文件问题的智能体"
+            },
+            "Context Chat Engine": {
+                "name": "上下文聊天引擎",
+                "description": "基于检索文档（上下文）回答问题，同时记住之前的对话"
+            },
+            "Conversation Chain": {
+                "name": "对话链",
+                "description": "具有记忆功能的多轮对话基础链"
+            },
+            "Conversational Agent": {
+                "name": "对话智能体",
+                "description": "可以使用工具并进行对话的智能体"
+            },
+            "Conversational Retrieval QA Chain": {
+                "name": "对话检索问答链",
+                "description": "基于文档的问答系统，具有对话记忆"
+            },
+            "Github Docs QnA": {
+                "name": "Github 文档问答",
+                "description": "从 GitHub 仓库文档中回答问题"
+            },
+            "HuggingFace LLM Chain": {
+                "name": "HuggingFace LLM 链",
+                "description": "使用 HuggingFace 模型的 LLM 链"
+            },
+            "Image Generation": {
+                "name": "图像生成",
+                "description": "使用 DALL-E 或 Stable Diffusion 生成图像"
+            },
+            "Input Moderation": {
+                "name": "输入审核",
+                "description": "审核用户输入的有害内容"
+            },
+            "LLM Chain": {
+                "name": "LLM 链",
+                "description": "无状态（无记忆）LLM 链的基础示例，包含提示模板和 LLM 模型"
+            },
+            "List Output Parser": {
+                "name": "列表输出解析器",
+                "description": "将 LLM 输出解析为列表格式"
+            },
+            "Local QnA": {
+                "name": "本地文档问答",
+                "description": "从本地文档中回答问题"
+            },
+            "Multiple Documents QnA": {
+                "name": "多文档问答",
+                "description": "从多个文档来源回答问题"
+            },
+            "OpenAI Assistant": {
+                "name": "OpenAI 助手",
+                "description": "使用 OpenAI Assistant API 进行对话"
+            },
+            "OpenAPI YAML Agent": {
+                "name": "OpenAPI YAML 智能体",
+                "description": "可以与 OpenAPI 端点交互的智能体"
+            },
+            "Prompt Chaining": {
+                "name": "提示链",
+                "description": "按顺序链接多个提示"
+            },
+            "Query Engine": {
+                "name": "查询引擎",
+                "description": "用于文档检索和回答的查询引擎"
+            },
+            "ReAct Agent": {
+                "name": "ReAct 智能体",
+                "description": "用于复杂任务的推理和行动智能体"
+            },
+            "Replicate LLM": {
+                "name": "Replicate LLM",
+                "description": "使用 Replicate 模型的 LLM 链"
+            },
+            "SQL DB Chain": {
+                "name": "SQL 数据库链",
+                "description": "自然语言转 SQL 查询链"
+            },
+            "Simple Chat Engine": {
+                "name": "简单聊天引擎",
+                "description": "用于基础对话的简单聊天引擎"
+            },
+            "SubQuestion Query Engine": {
+                "name": "子问题查询引擎",
+                "description": "将复杂问题分解为子问题"
+            },
+            "Tool Agent": {
+                "name": "工具智能体",
+                "description": "可以使用各种工具的智能体"
+            }
+        },
+        "agentflowsv2": {
+            "Agentic RAG": {
+                "name": "智能 RAG",
+                "description": "具有智能体能力的高级 RAG"
+            },
+            "Agents Handoff": {
+                "name": "智能体交接",
+                "description": "多个专业智能体之间的交接"
+            },
+            "Deep Research With Multi-turn Conversations": {
+                "name": "多轮对话深度研究",
+                "description": "具有对话记忆的深度研究智能体"
+            },
+            "Deep Research With Subagents": {
+                "name": "子智能体深度研究",
+                "description": "使用多个子智能体进行深度研究"
+            },
+            "Human In The Loop": {
+                "name": "人机协作",
+                "description": "带有人工审批步骤的智能体工作流"
+            },
+            "Interacting With API": {
+                "name": "API 交互",
+                "description": "与外部 API 交互的智能体"
+            },
+            "Iterations": {
+                "name": "迭代",
+                "description": "用于重复任务的迭代智能体工作流"
+            },
+            "SQL Agent": {
+                "name": "SQL 智能体",
+                "description": "专门处理 SQL 数据库操作的智能体"
+            },
+            "Simple RAG": {
+                "name": "简单 RAG",
+                "description": "基础 RAG 智能体，可以从文档库检索文档并回答问题"
+            },
+            "Structured Output": {
+                "name": "结构化输出",
+                "description": "生成结构化 JSON 输出的智能体"
+            },
+            "Supervisor Worker": {
+                "name": "监督者-工作者",
+                "description": "协调工作者智能体的监督者智能体"
+            },
+            "Translator": {
+                "name": "翻译器",
+                "description": "多语言翻译智能体"
+            },
+            "Workplace Chat": {
+                "name": "工作场所聊天",
+                "description": "工作场所沟通助手"
+            }
+        },
+        "tools": {
+            "Add Hubspot Contact": {
+                "name": "添加 Hubspot 联系人",
+                "description": "向 Hubspot CRM 添加新联系人"
+            },
+            "Create Airtable Record": {
+                "name": "创建 Airtable 记录",
+                "description": "在 Airtable 中创建新记录"
+            },
+            "Get Current DateTime": {
+                "name": "获取当前日期时间",
+                "description": "获取当前日期和时间"
+            },
+            "Get Stock Mover": {
+                "name": "获取股票动态",
+                "description": "获取股票市场动态信息"
+            },
+            "Make Webhook": {
+                "name": "Make Webhook",
+                "description": "触发 Make (Integromat) webhook"
+            },
+            "Perplexity AI Search": {
+                "name": "Perplexity AI 搜索",
+                "description": "使用 Perplexity AI 进行搜索"
+            },
+            "Print or Export Text Document": {
+                "name": "打印或导出文本文档",
+                "description": "打印或导出文本到文档"
+            },
+            "Send Discord Message": {
+                "name": "发送 Discord 消息",
+                "description": "向 Discord 频道发送消息"
+            },
+            "Send Slack Message": {
+                "name": "发送 Slack 消息",
+                "description": "向 Slack 频道发送消息"
+            },
+            "Send Teams Message": {
+                "name": "发送 Teams 消息",
+                "description": "向 Microsoft Teams 发送消息"
+            },
+            "SendGrid Email": {
+                "name": "SendGrid 邮件",
+                "description": "通过 SendGrid 发送邮件"
+            },
+            "Spider Web Scraper": {
+                "name": "Spider 网页抓取",
+                "description": "使用 Spider 抓取网页内容"
+            },
+            "Spider Web Search & Scrape": {
+                "name": "Spider 网页搜索与抓取",
+                "description": "搜索并抓取网页内容"
+            }
+        }
     }
 }

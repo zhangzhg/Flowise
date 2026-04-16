@@ -83,6 +83,26 @@ const Marketplace = () => {
     const theme = useTheme()
     const { error, setError } = useError()
 
+    const getTranslatedTemplate = (template) => {
+        const templateName = template.templateName || template.name
+        let category = 'chatflows'
+        if (template.type === 'AgentflowV2' || template.type === 'Agentflow') {
+            category = 'agentflowsv2'
+        } else if (template.type === 'Tool') {
+            category = 'tools'
+        }
+
+        const translationKey = `templates.${category}.${templateName}`
+        const translatedName = t(`${translationKey}.name`, { defaultValue: templateName })
+        const translatedDescription = t(`${translationKey}.description`, { defaultValue: template.description })
+
+        return {
+            ...template,
+            name: translatedName,
+            description: translatedDescription
+        }
+    }
+
     const [isLoading, setLoading] = useState(true)
     const [images, setImages] = useState({})
     const [icons, setIcons] = useState({})
@@ -727,51 +747,57 @@ const Marketplace = () => {
                                                     .filter(filterFlows)
                                                     .filter(filterByFramework)
                                                     .filter(filterByUsecases)
-                                                    .map((data, index) => (
-                                                        <Box key={index}>
-                                                            {data.badge && (
-                                                                <Badge
-                                                                    sx={{
-                                                                        width: '100%',
-                                                                        height: '100%',
-                                                                        '& .MuiBadge-badge': {
-                                                                            right: 20
-                                                                        }
-                                                                    }}
-                                                                    badgeContent={data.badge}
-                                                                    color={data.badge === 'POPULAR' ? 'primary' : 'error'}
-                                                                >
-                                                                    {(data.type === 'Chatflow' ||
+                                                    .map((data, index) => {
+                                                        const translatedData = getTranslatedTemplate(data)
+                                                        return (
+                                                            <Box key={index}>
+                                                                {data.badge && (
+                                                                    <Badge
+                                                                        sx={{
+                                                                            width: '100%',
+                                                                            height: '100%',
+                                                                            '& .MuiBadge-badge': {
+                                                                                right: 20
+                                                                            }
+                                                                        }}
+                                                                        badgeContent={data.badge}
+                                                                        color={data.badge === 'POPULAR' ? 'primary' : 'error'}
+                                                                    >
+                                                                        {(data.type === 'Chatflow' ||
+                                                                            data.type === 'Agentflow' ||
+                                                                            data.type === 'AgentflowV2') && (
+                                                                            <ItemCard
+                                                                                onClick={() => goToCanvas(data)}
+                                                                                data={translatedData}
+                                                                                images={images[data.id]}
+                                                                                icons={icons[data.id]}
+                                                                            />
+                                                                        )}
+                                                                        {data.type === 'Tool' && (
+                                                                            <ItemCard
+                                                                                data={translatedData}
+                                                                                onClick={() => goToTool(data)}
+                                                                            />
+                                                                        )}
+                                                                    </Badge>
+                                                                )}
+                                                                {!data.badge &&
+                                                                    (data.type === 'Chatflow' ||
                                                                         data.type === 'Agentflow' ||
                                                                         data.type === 'AgentflowV2') && (
                                                                         <ItemCard
                                                                             onClick={() => goToCanvas(data)}
-                                                                            data={data}
+                                                                            data={translatedData}
                                                                             images={images[data.id]}
                                                                             icons={icons[data.id]}
                                                                         />
                                                                     )}
-                                                                    {data.type === 'Tool' && (
-                                                                        <ItemCard data={data} onClick={() => goToTool(data)} />
-                                                                    )}
-                                                                </Badge>
-                                                            )}
-                                                            {!data.badge &&
-                                                                (data.type === 'Chatflow' ||
-                                                                    data.type === 'Agentflow' ||
-                                                                    data.type === 'AgentflowV2') && (
-                                                                    <ItemCard
-                                                                        onClick={() => goToCanvas(data)}
-                                                                        data={data}
-                                                                        images={images[data.id]}
-                                                                        icons={icons[data.id]}
-                                                                    />
+                                                                {!data.badge && data.type === 'Tool' && (
+                                                                    <ItemCard data={translatedData} onClick={() => goToTool(data)} />
                                                                 )}
-                                                            {!data.badge && data.type === 'Tool' && (
-                                                                <ItemCard data={data} onClick={() => goToTool(data)} />
-                                                            )}
-                                                        </Box>
-                                                    ))}
+                                                            </Box>
+                                                        )
+                                                    })}
                                             </Box>
                                         )}
                                     </>
@@ -787,6 +813,7 @@ const Marketplace = () => {
                                         goToCanvas={goToCanvas}
                                         isLoading={isLoading}
                                         setError={setError}
+                                        getTranslatedTemplate={getTranslatedTemplate}
                                     />
                                 )}
 
