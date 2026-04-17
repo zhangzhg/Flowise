@@ -334,6 +334,7 @@
         "chatTogetherAI_LlamaIndex": "LlamaIndex 专用的 ChatTogetherAI LLM 封装",
         "chatXAI": "XAI 的 Grok 封装",
         "chatDeepseek": "使用 Chat 端点的 Deepseek 大语言模型封装",
+        "chatGLM": "智谱AI GLM Chat 端点封装",
         "chatGroq_LlamaIndex": "LlamaIndex 专用的 Groq LLM 封装",
         "groqChat": "使用 LPU 推理引擎的 Groq API 封装",
         "airtable": "从 Airtable 表格加载数据",

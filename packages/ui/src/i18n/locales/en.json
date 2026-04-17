@@ -334,6 +334,7 @@
         "chatTogetherAI_LlamaIndex": "Wrapper around ChatTogetherAI LLM specific for LlamaIndex",
         "chatXAI": "Wrapper around Grok from XAI",
         "chatDeepseek": "Wrapper around Deepseek large language models that use the Chat endpoint",
+        "chatGLM": "Wrapper around ZhipuAI GLM Chat Endpoints",
         "chatGroq_LlamaIndex": "Wrapper around Groq LLM specific for LlamaIndex",
         "groqChat": "Wrapper around Groq API with LPU Inference Engine",
         "airtable": "Load data from Airtable table",

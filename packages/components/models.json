@@ -1252,6 +1252,46 @@
             ]
         },
         {
+            "name": "chatGLM",
+            "models": [
+                {
+                    "label": "glm-4-plus",
+                    "name": "glm-4-plus",
+                    "description": "High-performance model for complex tasks"
+                },
+                {
+                    "label": "glm-4-0520",
+                    "name": "glm-4-0520",
+                    "description": "Stable version of GLM-4"
+                },
+                {
+                    "label": "glm-4-air",
+                    "name": "glm-4-air",
+                    "description": "Cost-effective fast inference model"
+                },
+                {
+                    "label": "glm-4-airx",
+                    "name": "glm-4-airx",
+                    "description": "Ultra-fast inference model"
+                },
+                {
+                    "label": "glm-4-long",
+                    "name": "glm-4-long",
+                    "description": "Long context model supporting up to 1M tokens"
+                },
+                {
+                    "label": "glm-4-flash",
+                    "name": "glm-4-flash",
+                    "description": "Free lightweight model"
+                },
+                {
+                    "label": "glm-4-flashx",
+                    "name": "glm-4-flashx",
+                    "description": "Enhanced flash model with better performance"
+                }
+            ]
+        },
+        {
             "name": "chatOpenAI",
             "models": [
                 {
