@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import { Alert, Box, Button, OutlinedInput, Stack, Typography, useTheme } from '@mui/material'
@@ -29,6 +30,7 @@ import { IconExclamationCircle, IconX } from '@tabler/icons-react'
 
 const ResetPasswordPage = () => {
     const theme = useTheme()
+    const { t } = useTranslation()
     useNotifier()
     const navigate = useNavigate()
     const dispatch = useDispatch()
@@ -36,28 +38,28 @@ const ResetPasswordPage = () => {
     const closeSnackbar = (...args) => dispatch(closeSnackbarAction(...args))
 
     const emailInput = {
-        label: 'Email',
+        label: t('auth.email'),
         name: 'email',
         type: 'email',
         placeholder: 'user@company.com'
     }
 
     const passwordInput = {
-        label: 'Password',
+        label: t('auth.password'),
         name: 'password',
         type: 'password',
         placeholder: '********'
     }
 
     const confirmPasswordInput = {
-        label: 'Confirm Password',
+        label: t('auth.confirmPassword'),
         name: 'confirmPassword',
         type: 'password',
         placeholder: '********'
     }
 
     const resetPasswordInput = {
-        label: 'Reset Token',
+        label: t('auth.resetPassword.resetToken'),
         name: 'resetToken',
         type: 'text'
     }
@@ -85,10 +87,10 @@ const ResetPasswordPage = () => {
         setAuthErrors([])
         setAuthRateLimitError(null)
         if (!tokenVal) {
-            validationErrors.push('Token cannot be left blank!')
+            validationErrors.push(t('auth.resetPassword.tokenRequired'))
         }
         if (newPasswordVal !== confirmPasswordVal) {
-            validationErrors.push('New Password and Confirm Password do not match.')
+            validationErrors.push(t('auth.resetPassword.passwordMismatch'))
         }
         const passwordErrors = validatePassword(newPasswordVal)
         if (passwordErrors.length > 0) {
@@ -112,7 +114,7 @@ const ResetPasswordPage = () => {
             setLoading(false)
             if (updateResponse.data) {
                 enqueueSnackbar({
-                    message: 'Password reset successful',
+                    message: t('auth.resetPassword.success'),
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'success',
@@ -133,7 +135,7 @@ const ResetPasswordPage = () => {
             setLoading(false)
             setAuthErrors([typeof error.response.data === 'object' ? error.response.data.message : error.response.data])
             enqueueSnackbar({
-                message: `Failed to reset password!`,
+                message: t('auth.resetPassword.failed'),
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -172,10 +174,10 @@ const ResetPasswordPage = () => {
                         </Alert>
                     )}
                     <Stack sx={{ gap: 1 }}>
-                        <Typography variant='h1'>Reset Password</Typography>
+                        <Typography variant='h1'>{t('auth.resetPassword.title')}</Typography>
                         <Typography variant='body2' sx={{ color: theme.palette.grey[600] }}>
                             <Link style={{ color: theme.palette.primary.main }} to='/signin'>
-                                Back to Login
+                                {t('auth.backToLogin')}
                             </Link>
                             .
                         </Typography>

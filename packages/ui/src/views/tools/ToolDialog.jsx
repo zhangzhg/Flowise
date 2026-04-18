@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
 import { cloneDeep } from 'lodash'
+import { useTranslation } from 'react-i18next'
 
 import { Box, Button, Typography, Dialog, DialogActions, DialogContent, DialogTitle, Stack, OutlinedInput } from '@mui/material'
 import { StyledButton } from '@/ui-component/button/StyledButton'
@@ -61,6 +62,7 @@ try {
 
 const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, setError }) => {
     const portalElement = document.getElementById('portal')
+    const { t } = useTranslation()
 
     const customization = useSelector((state) => state.customization)
     const dispatch = useDispatch()
@@ -462,17 +464,17 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
                     <Box>
                         <Stack sx={{ position: 'relative', alignItems: 'center' }} direction='row'>
                             <Typography variant='overline'>
-                                Tool Name
+                                {t('forms.tool.toolName')}
                                 <span style={{ color: 'red' }}>&nbsp;*</span>
                             </Typography>
-                            <TooltipWithParser title={'Tool name must be small capital letter with underscore. Ex: my_tool'} />
+                            <TooltipWithParser title={t('forms.tool.toolNameTooltip')} />
                         </Stack>
                         <OutlinedInput
                             id='toolName'
                             type='string'
                             fullWidth
                             disabled={dialogProps.type === 'TEMPLATE'}
-                            placeholder='My New Tool'
+                            placeholder={t('forms.tool.toolNamePlaceholder')}
                             value={toolName}
                             name='toolName'
                             onChange={(e) => setToolName(e.target.value)}
@@ -481,19 +483,17 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
                     <Box>
                         <Stack sx={{ position: 'relative', alignItems: 'center' }} direction='row'>
                             <Typography variant='overline'>
-                                Tool description
+                                {t('forms.tool.description')}
                                 <span style={{ color: 'red' }}>&nbsp;*</span>
                             </Typography>
-                            <TooltipWithParser
-                                title={'Description of what the tool does. This is for ChatGPT to determine when to use this tool.'}
-                            />
+                            <TooltipWithParser title={t('forms.tool.descriptionTooltip')} />
                         </Stack>
                         <OutlinedInput
                             id='toolDesc'
                             type='string'
                             fullWidth
                             disabled={dialogProps.type === 'TEMPLATE'}
-                            placeholder='Description of what the tool does. This is for ChatGPT to determine when to use this tool.'
+                            placeholder={t('forms.tool.descriptionPlaceholder')}
                             multiline={true}
                             rows={3}
                             value={toolDesc}
@@ -503,7 +503,7 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
                     </Box>
                     <Box>
                         <Stack sx={{ position: 'relative' }} direction='row'>
-                            <Typography variant='overline'>Tool Icon Source</Typography>
+                            <Typography variant='overline'>{t('forms.tool.iconSource')}</Typography>
                         </Stack>
                         <OutlinedInput
                             id='toolIcon'
@@ -519,8 +519,8 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
                     <Box>
                         <Stack sx={{ position: 'relative', justifyContent: 'space-between' }} direction='row'>
                             <Stack sx={{ position: 'relative', alignItems: 'center' }} direction='row'>
-                                <Typography variant='overline'>Input Schema</Typography>
-                                <TooltipWithParser title={'What is the input format in JSON?'} />
+                                <Typography variant='overline'>{t('forms.tool.inputSchema')}</Typography>
+                                <TooltipWithParser title={t('forms.tool.inputSchemaTooltip')} />
                             </Stack>
                             {dialogProps.type !== 'TEMPLATE' && (
                                 <Stack direction='row' spacing={1}>
@@ -538,7 +538,7 @@ const ToolDialog = ({ show, dialogProps, onUseTemplate, onCancel, onConfirm, set
                     <Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <Stack sx={{ position: 'relative', alignItems: 'center' }} direction='row'>
-                                <Typography variant='overline'>Javascript Function</Typography>
+                                <Typography variant='overline'>{t('forms.tool.jsFunction')}</Typography>
                                 <TooltipWithParser title='Function to execute when tool is being used. You can use properties specified in Input Schema as variables. For example, if the property is <code>userid</code>, you can use as <code>$userid</code>. Return value must be a string. You can also override the code from API by following this <a target="_blank" href="https://docs.flowiseai.com/tools/custom-tool#override-function-from-api">guide</a>' />
                             </Stack>
                             <Stack direction='row'>

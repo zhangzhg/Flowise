@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useDispatch } from 'react-redux'
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
 import { cloneDeep } from 'lodash'
+import { useTranslation } from 'react-i18next'
 
 // Material
 import { IconButton, Dialog, DialogActions, DialogContent, DialogTitle, Box, Typography, OutlinedInput, Button, Stack } from '@mui/material'
@@ -34,6 +35,7 @@ import { evaluators, evaluatorTypes, numericOperators } from './evaluatorConstan
 
 const AddEditEvaluatorDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
     const portalElement = document.getElementById('portal')
+    const { t } = useTranslation()
 
     const dispatch = useDispatch()
 
@@ -343,7 +345,7 @@ const AddEditEvaluatorDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
             <DialogTitle sx={{ fontSize: '1rem' }} id='alert-dialog-title'>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                     <IconPuzzle style={{ marginRight: '10px' }} />
-                    {dialogProps.type === 'ADD' ? 'Add Evaluator' : 'Edit Evaluator'}
+                    {dialogProps.type === 'ADD' ? t('forms.evaluator.addTitle') : t('forms.evaluator.editTitle')}
                 </div>
             </DialogTitle>
             <DialogContent>

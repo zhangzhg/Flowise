@@ -2,6 +2,7 @@ import { createPortal } from 'react-dom'
 import PropTypes from 'prop-types'
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 // Material
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Box, Typography, OutlinedInput } from '@mui/material'
@@ -33,6 +34,7 @@ import {
 
 const AddEditWorkspaceDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
     const portalElement = document.getElementById('portal')
+    const { t } = useTranslation()
 
     const dispatch = useDispatch()
 
@@ -79,7 +81,7 @@ const AddEditWorkspaceDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
     const addNewWorkspace = async () => {
         if (workspaceName === 'Default Workspace' || workspaceName === 'Personal Workspace') {
             enqueueSnackbar({
-                message: 'Workspace name cannot be Default Workspace or Personal Workspace - this is a reserved name',
+                message: t('forms.workspace.reservedNameError'),
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -104,7 +106,7 @@ const AddEditWorkspaceDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
             const createResp = await workspaceApi.createWorkspace(obj)
             if (createResp.data) {
                 enqueueSnackbar({
-                    message: 'New Workspace added',
+                    message: t('forms.workspace.addedSuccess'),
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'success',
@@ -119,9 +121,9 @@ const AddEditWorkspaceDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
             }
         } catch (error) {
             enqueueSnackbar({
-                message: `Failed to add new Workspace: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                }`,
+                message: t('forms.workspace.addFailed', {
+                    message: typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                }),
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -150,7 +152,7 @@ const AddEditWorkspaceDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
             if (saveResp.data) {
                 store.dispatch(workspaceNameUpdated(saveResp.data))
                 enqueueSnackbar({
-                    message: 'Workspace saved',
+                    message: t('forms.workspace.savedSuccess'),
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'success',
@@ -165,9 +167,9 @@ const AddEditWorkspaceDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
             }
         } catch (error) {
             enqueueSnackbar({
-                message: `Failed to save Workspace: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                }`,
+                message: t('forms.workspace.saveFailed', {
+                    message: typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                }),
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -195,14 +197,15 @@ const AddEditWorkspaceDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
             <DialogTitle sx={{ fontSize: '1rem' }} id='alert-dialog-title'>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                     <IconUsersGroup style={{ marginRight: '10px' }} />
-                    {dialogProps.type === 'ADD' ? 'Add Workspace' : 'Edit Workspace'}
+                    {dialogProps.type === 'ADD' ? t('forms.workspace.addTitle') : t('forms.workspace.editTitle')}
                 </div>
             </DialogTitle>
             <DialogContent>
                 <Box sx={{ p: 2 }}>
                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                         <Typography>
-                            Name<span style={{ color: 'red' }}>&nbsp;*</span>
+                            {t('forms.workspace.workspaceName')}
+                            <span style={{ color: 'red' }}>&nbsp;*</span>
                         </Typography>
                         <div style={{ flexGrow: 1 }}></div>
                     </div>
@@ -214,11 +217,12 @@ const AddEditWorkspaceDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
                         key='workspaceName'
                         onChange={(e) => setWorkspaceName(e.target.value)}
                         value={workspaceName ?? ''}
+                        placeholder={t('forms.workspace.workspaceNamePlaceholder')}
                     />
                 </Box>
                 <Box sx={{ p: 2 }}>
                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                        <Typography>Description</Typography>
+                        <Typography>{t('forms.workspace.workspaceDescription')}</Typography>
                         <div style={{ flexGrow: 1 }}></div>
                     </div>
                     <OutlinedInput
@@ -231,6 +235,7 @@ const AddEditWorkspaceDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
                         key='workspaceDescription'
                         onChange={(e) => setWorkspaceDescription(e.target.value)}
                         value={workspaceDescription ?? ''}
+                        placeholder={t('forms.workspace.workspaceDescriptionPlaceholder')}
                     />
                 </Box>
             </DialogContent>

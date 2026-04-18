@@ -8,6 +8,7 @@ import {
     enqueueSnackbar as enqueueSnackbarAction,
     closeSnackbar as closeSnackbarAction
 } from '@/store/actions'
+import { useTranslation } from 'react-i18next'
 
 // Material
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Box, Typography, OutlinedInput } from '@mui/material'
@@ -27,6 +28,7 @@ import useNotifier from '@/utils/useNotifier'
 
 const AddDocStoreDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
     const portalElement = document.getElementById('portal')
+    const { t } = useTranslation()
 
     const dispatch = useDispatch()
 
@@ -177,7 +179,8 @@ const AddDocStoreDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
                 <Box sx={{ p: 2 }}>
                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                         <Typography>
-                            Name<span style={{ color: 'red' }}>&nbsp;*</span>
+                            {t('common.name')}
+                            <span style={{ color: 'red' }}>&nbsp;*</span>
                         </Typography>
 
                         <div style={{ flexGrow: 1 }}></div>
@@ -194,7 +197,7 @@ const AddDocStoreDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
                 </Box>
                 <Box sx={{ p: 2 }}>
                     <div style={{ display: 'flex', flexDirection: 'row' }}>
-                        <Typography>Description</Typography>
+                        <Typography>{t('forms.docStore.description')}</Typography>
 
                         <div style={{ flexGrow: 1 }}></div>
                     </div>

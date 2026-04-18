@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDispatch } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 import { StyledButton } from '@/ui-component/button/StyledButton'
 import ConfirmDialog from '@/ui-component/dialog/ConfirmDialog'
@@ -44,6 +45,7 @@ const APIKeyDialog = ({ show, dialogProps, onCancel, onConfirm, setError }) => {
     const portalElement = document.getElementById('portal')
 
     const theme = useTheme()
+    const { t } = useTranslation()
     const dispatch = useDispatch()
     const { isOpenSource, isEnterpriseLicensed, isCloud } = useConfig()
 
@@ -354,7 +356,7 @@ const APIKeyDialog = ({ show, dialogProps, onCancel, onConfirm, setError }) => {
             <DialogContent sx={{ backgroundColor: 'transparent' }}>
                 {dialogProps.type === 'EDIT' && (
                     <Box sx={{ p: 2 }}>
-                        <Typography variant='overline'>API Key</Typography>
+                        <Typography variant='overline'>{t('forms.apiKey.apiKey')}</Typography>
                         <Stack direction='row' sx={{ mb: 1 }}>
                             <Typography
                                 sx={{
@@ -369,7 +371,7 @@ const APIKeyDialog = ({ show, dialogProps, onCancel, onConfirm, setError }) => {
                                 {dialogProps.key.apiKey}
                             </Typography>
                             <IconButton
-                                title='Copy API Key'
+                                title={t('forms.apiKey.copyApiKey')}
                                 color='success'
                                 onClick={(event) => {
                                     navigator.clipboard.writeText(dialogProps.key.apiKey)
@@ -384,28 +386,24 @@ const APIKeyDialog = ({ show, dialogProps, onCancel, onConfirm, setError }) => {
                             <Popover
                                 open={openPopOver}
                                 anchorEl={anchorEl}
-                                onClose={handleClosePopOver}
+                                onClose={() => setAnchorEl(null)}
                                 anchorOrigin={{
-                                    vertical: 'top',
-                                    horizontal: 'right'
-                                }}
-                                transformOrigin={{
-                                    vertical: 'top',
+                                    vertical: 'bottom',
                                     horizontal: 'left'
                                 }}
                             >
                                 <Typography variant='h6' sx={{ pl: 1, pr: 1, color: 'white', background: theme.palette.success.dark }}>
-                                    Copied!
+                                    {t('forms.apiKey.copied')}
                                 </Typography>
                             </Popover>
                         </Stack>
                     </Box>
                 )}
-
                 <div className='apikey-editor'>
                     <Box>
                         <Typography sx={{ mb: 1 }} variant='h5'>
-                            <span style={{ color: 'red' }}>*&nbsp;&nbsp;</span>Key Name
+                            <span style={{ color: 'red' }}>*&nbsp;&nbsp;</span>
+                            {t('forms.apiKey.keyName')}
                         </Typography>
                         <OutlinedInput
                             id='keyName'

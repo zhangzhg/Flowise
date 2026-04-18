@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
+import { useTranslation } from 'react-i18next'
 
 // Material
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Box, Typography, OutlinedInput } from '@mui/material'
@@ -37,6 +38,7 @@ const CSVFORMAT = `Only the first 2 columns will be considered:
 
 const AddEditDatasetDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
     const portalElement = document.getElementById('portal')
+    const { t } = useTranslation()
 
     const dispatch = useDispatch()
 
@@ -182,7 +184,7 @@ const AddEditDatasetDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
             <DialogTitle sx={{ fontSize: '1rem' }} id='alert-dialog-title'>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                     <IconDatabase style={{ marginRight: '10px' }} />
-                    {dialogProps.type === 'ADD' ? 'Add Dataset' : 'Edit Dataset'}
+                    {dialogProps.type === 'ADD' ? t('forms.dataset.addTitle') : t('forms.dataset.editTitle')}
                 </div>
             </DialogTitle>
             <DialogContent>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
 import parser from 'html-react-parser'
+import { useTranslation } from 'react-i18next'
 
 // Material
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Box, Stack, OutlinedInput, Typography } from '@mui/material'
@@ -34,6 +35,7 @@ import keySVG from '@/assets/images/key.svg'
 
 const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setError }) => {
     const portalElement = document.getElementById('portal')
+    const { t } = useTranslation()
 
     const dispatch = useDispatch()
 
@@ -127,7 +129,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
             const createResp = await credentialsApi.createCredential(obj)
             if (createResp.data) {
                 enqueueSnackbar({
-                    message: 'New Credential added',
+                    message: t('forms.credential.addedSuccess'),
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'success',
@@ -143,9 +145,9 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
         } catch (error) {
             if (setError) setError(error)
             enqueueSnackbar({
-                message: `Failed to add new Credential: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                }`,
+                message: t('forms.credential.addFailed', {
+                    message: typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                }),
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -179,7 +181,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
             const saveResp = await credentialsApi.updateCredential(credential.id, saveObj)
             if (saveResp.data) {
                 enqueueSnackbar({
-                    message: 'Credential saved',
+                    message: t('forms.credential.savedSuccess'),
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'success',
@@ -195,9 +197,9 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
         } catch (error) {
             if (setError) setError(error)
             enqueueSnackbar({
-                message: `Failed to save Credential: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                }`,
+                message: t('forms.credential.saveFailed', {
+                    message: typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                }),
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -444,7 +446,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                     <Box sx={{ p: 2 }}>
                         <Stack sx={{ position: 'relative' }} direction='row'>
                             <Typography variant='overline'>
-                                Credential Name
+                                {t('forms.credential.credentialName')}
                                 <span style={{ color: 'red' }}>&nbsp;*</span>
                             </Typography>
                         </Stack>

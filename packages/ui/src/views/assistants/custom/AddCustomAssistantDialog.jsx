@@ -9,6 +9,7 @@ import {
     closeSnackbar as closeSnackbarAction
 } from '@/store/actions'
 import { v4 as uuidv4 } from 'uuid'
+import { useTranslation } from 'react-i18next'
 
 // Material
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Box, Typography, OutlinedInput } from '@mui/material'
@@ -30,6 +31,7 @@ const AddCustomAssistantDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
     const portalElement = document.getElementById('portal')
 
     const dispatch = useDispatch()
+    const { t } = useTranslation()
 
     // ==============================|| Snackbar ||============================== //
 
@@ -58,7 +60,7 @@ const AddCustomAssistantDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
             const createResp = await assistantsApi.createNewAssistant(obj)
             if (createResp.data) {
                 enqueueSnackbar({
-                    message: 'New Custom Assistant created.',
+                    message: t('forms.assistant.addedSuccess'),
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'success',
@@ -73,9 +75,9 @@ const AddCustomAssistantDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
             }
         } catch (err) {
             enqueueSnackbar({
-                message: `Failed to add new Custom Assistant: ${
-                    typeof err.response.data === 'object' ? err.response.data.message : err.response.data
-                }`,
+                message: t('forms.assistant.addFailed', {
+                    message: typeof err.response.data === 'object' ? err.response.data.message : err.response.data
+                }),
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -110,7 +112,8 @@ const AddCustomAssistantDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
                 <Box sx={{ p: 2 }}>
                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                         <Typography>
-                            Name<span style={{ color: 'red' }}>&nbsp;*</span>
+                            {t('forms.assistant.assistantName')}
+                            <span style={{ color: 'red' }}>&nbsp;*</span>
                         </Typography>
 
                         <div style={{ flexGrow: 1 }}></div>

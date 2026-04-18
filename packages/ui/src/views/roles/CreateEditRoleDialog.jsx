@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useDispatch, useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 // Material
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, OutlinedInput, Typography } from '@mui/material'
@@ -34,6 +35,7 @@ const CreateEditRoleDialog = ({ show, dialogProps, onCancel, onConfirm, setError
     const portalElement = document.getElementById('portal')
 
     const dispatch = useDispatch()
+    const { t } = useTranslation()
     const { isOpenSource, isEnterpriseLicensed, isCloud } = useConfig()
 
     // ==============================|| Snackbar ||============================== //
@@ -310,14 +312,19 @@ const CreateEditRoleDialog = ({ show, dialogProps, onCancel, onConfirm, setError
             <DialogTitle sx={{ fontSize: '1rem' }} id='alert-dialog-title'>
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                     <IconUser style={{ marginRight: '10px' }} />
-                    {dialogProps.type === 'EDIT' ? 'Edit Role' : dialogProps.type === 'VIEW' ? 'View Role' : 'Create New Role'}
+                    {dialogProps.type === 'EDIT'
+                        ? t('forms.role.editTitle')
+                        : dialogProps.type === 'VIEW'
+                        ? t('forms.role.viewTitle')
+                        : t('forms.role.addTitle')}
                 </div>
             </DialogTitle>
             <DialogContent sx={{ backgroundColor: 'transparent' }}>
                 <div className='role-editor'>
                     <Box>
                         <Typography sx={{ mb: 1 }} variant='h5'>
-                            <span style={{ color: 'red' }}>*&nbsp;&nbsp;</span>Role Name
+                            <span style={{ color: 'red' }}>*&nbsp;&nbsp;</span>
+                            {t('forms.role.roleName')}
                         </Typography>
                         <OutlinedInput
                             id='roleName'
@@ -333,7 +340,7 @@ const CreateEditRoleDialog = ({ show, dialogProps, onCancel, onConfirm, setError
                     </Box>
                     <Box>
                         <Typography sx={{ mb: 1 }} variant='h5'>
-                            Role Description
+                            {t('forms.role.description')}
                         </Typography>
                         <OutlinedInput
                             id='roleDesc'

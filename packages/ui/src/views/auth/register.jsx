@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod/v3'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import { Alert, Box, Button, Divider, Icon, List, ListItemText, OutlinedInput, Stack, Typography, useTheme } from '@mui/material'
@@ -64,39 +65,40 @@ const RegisterCloudUserSchema = z
 
 const RegisterPage = () => {
     const theme = useTheme()
+    const { t } = useTranslation()
     useNotifier()
     const { isEnterpriseLicensed, isCloud, isOpenSource } = useConfig()
 
     const usernameInput = {
-        label: 'Username',
+        label: t('auth.username'),
         name: 'username',
         type: 'text',
         placeholder: 'John Doe'
     }
 
     const passwordInput = {
-        label: 'Password',
+        label: t('auth.password'),
         name: 'password',
         type: 'password',
         placeholder: '********'
     }
 
     const confirmPasswordInput = {
-        label: 'Confirm Password',
+        label: t('auth.confirmPassword'),
         name: 'confirmPassword',
         type: 'password',
         placeholder: '********'
     }
 
     const emailInput = {
-        label: 'EMail',
+        label: t('auth.email'),
         name: 'email',
         type: 'email',
         placeholder: 'user@company.com'
     }
 
     const inviteCodeInput = {
-        label: 'Invite Code',
+        label: t('auth.inviteCode'),
         name: 'inviteCode',
         type: 'text'
     }
@@ -184,11 +186,9 @@ const RegisterPage = () => {
     useEffect(() => {
         if (registerApi.error) {
             if (isEnterpriseLicensed) {
-                setAuthError(
-                    `Error in registering user. Please contact your administrator. (${registerApi.error?.response?.data?.message})`
-                )
+                setAuthError(t('auth.register.registerFailedEnterprise', { message: registerApi.error?.response?.data?.message }))
             } else if (isCloud) {
-                setAuthError(`Error in registering user. Please try again.`)
+                setAuthError(t('auth.register.registerFailed'))
             }
             setLoading(false)
         }
@@ -241,9 +241,9 @@ const RegisterPage = () => {
             setUsername('')
             setEmail('')
             if (isEnterpriseLicensed) {
-                setSuccessMsg('Registration Successful. You will be redirected to the sign in page shortly.')
+                setSuccessMsg(t('auth.register.successEnterprise'))
             } else if (isCloud) {
-                setSuccessMsg('To complete your registration, please click on the verification link we sent to your email address')
+                setSuccessMsg(t('auth.register.successCloud'))
             }
             setTimeout(() => {
                 navigate('/signin')
@@ -290,11 +290,11 @@ const RegisterPage = () => {
                         </Alert>
                     )}
                     <Stack sx={{ gap: 1 }}>
-                        <Typography variant='h1'>Sign Up</Typography>
+                        <Typography variant='h1'>{t('auth.signUp')}</Typography>
                         <Typography variant='body2' sx={{ color: theme.palette.grey[600] }}>
-                            Already have an account?{' '}
+                            {t('auth.alreadyHaveAccount')}{' '}
                             <Link style={{ color: theme.palette.primary.main }} to='/signin'>
-                                Sign In
+                                {t('auth.signIn')}
                             </Link>
                             .
                         </Typography>
