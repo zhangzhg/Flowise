@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import { Avatar, Box, ButtonBase, Typography, Stack } from '@mui/material'
 import { StyledButton } from '@/ui-component/button/StyledButton'
+import { useTranslation } from 'react-i18next'
 
 // icons
 import { IconCopy, IconChevronLeft } from '@tabler/icons-react'
@@ -13,13 +14,14 @@ import { Available } from '@/ui-component/rbac/available'
 // ==============================|| CANVAS HEADER ||============================== //
 
 const MarketplaceCanvasHeader = ({ flowName, flowData, onChatflowCopy }) => {
+    const { t } = useTranslation()
     const theme = useTheme()
     const navigate = useNavigate()
 
     return (
         <>
             <Box>
-                <ButtonBase title='Back' sx={{ borderRadius: '50%' }}>
+                <ButtonBase title={t('common.back')} sx={{ borderRadius: '50%' }}>
                     <Avatar
                         variant='rounded'
                         sx={{
@@ -58,11 +60,11 @@ const MarketplaceCanvasHeader = ({ flowName, flowData, onChatflowCopy }) => {
                     <StyledButton
                         color='secondary'
                         variant='contained'
-                        title='Use Chatflow'
+                        title={t('marketplaces.useTemplate')}
                         onClick={() => onChatflowCopy(flowData)}
                         startIcon={<IconCopy />}
                     >
-                        Use Template
+                        {t('marketplaces.useTemplate')}
                     </StyledButton>
                 </Box>
             </Available>

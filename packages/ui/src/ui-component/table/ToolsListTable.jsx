@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import { useSelector } from 'react-redux'
 import { styled } from '@mui/material/styles'
 import { tableCellClasses } from '@mui/material/TableCell'
+import { useTranslation } from 'react-i18next'
 import {
     Button,
     Paper,
@@ -36,6 +37,7 @@ const StyledTableRow = styled(TableRow)(() => ({
 }))
 
 export const ToolsTable = ({ data, isLoading, onSelect }) => {
+    const { t } = useTranslation()
     const theme = useTheme()
     const customization = useSelector((state) => state.customization)
 
@@ -51,9 +53,9 @@ export const ToolsTable = ({ data, isLoading, onSelect }) => {
                     >
                         <TableRow>
                             <StyledTableCell component='th' scope='row' key='0'>
-                                Name
+                                {t('tables.name')}
                             </StyledTableCell>
-                            <StyledTableCell key='1'>Description</StyledTableCell>
+                            <StyledTableCell key='1'>{t('tables.description')}</StyledTableCell>
                             <StyledTableCell component='th' scope='row' key='3'>
                                 &nbsp;
                             </StyledTableCell>

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types'
 import { useSelector } from 'react-redux'
 import { styled } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import {
     IconButton,
     Paper,
@@ -38,6 +39,7 @@ const StyledTableRow = styled(TableRow)(() => ({
 }))
 
 export const FilesTable = ({ data, isLoading, filterFunction, handleDelete }) => {
+    const { t } = useTranslation()
     const theme = useTheme()
     const customization = useSelector((state) => state.customization)
 
@@ -53,16 +55,16 @@ export const FilesTable = ({ data, isLoading, filterFunction, handleDelete }) =>
                     >
                         <TableRow>
                             <StyledTableCell component='th' scope='row' style={{ width: '25%' }} key='0'>
-                                Name
+                                {t('tables.name')}
                             </StyledTableCell>
                             <StyledTableCell style={{ width: '40%' }} key='1'>
-                                Path
+                                {t('tables.path')}
                             </StyledTableCell>
                             <StyledTableCell style={{ width: '25%' }} key='2'>
-                                Size
+                                {t('tables.size')}
                             </StyledTableCell>
                             <StyledTableCell style={{ width: '10%' }} key='3'>
-                                Actions
+                                {t('tables.actions')}
                             </StyledTableCell>
                         </TableRow>
                     </TableHead>

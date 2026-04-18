@@ -2,6 +2,7 @@ import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { useSelector } from 'react-redux'
 import { styled } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import {
     Box,
     IconButton,
@@ -41,6 +42,7 @@ const StyledTableRow = styled(TableRow)(() => ({
 }))
 
 export const DocumentStoreTable = ({ data, isLoading, onRowClick, images, showActions, onActionMenuClick, actionButtonSx }) => {
+    const { t } = useTranslation()
     const theme = useTheme()
     const customization = useSelector((state) => state.customization)
 
@@ -82,14 +84,14 @@ export const DocumentStoreTable = ({ data, isLoading, onRowClick, images, showAc
                             <StyledTableCell>&nbsp;</StyledTableCell>
                             <StyledTableCell>
                                 <TableSortLabel active={orderBy === 'name'} direction={order} onClick={() => handleRequestSort('name')}>
-                                    Name
+                                    {t('tables.name')}
                                 </TableSortLabel>
                             </StyledTableCell>
-                            <StyledTableCell>Description</StyledTableCell>
-                            <StyledTableCell>Connected flows</StyledTableCell>
-                            <StyledTableCell>Total characters</StyledTableCell>
-                            <StyledTableCell>Total chunks</StyledTableCell>
-                            <StyledTableCell>Loader Types</StyledTableCell>
+                            <StyledTableCell>{t('tables.description')}</StyledTableCell>
+                            <StyledTableCell>{t('tables.connectedFlows')}</StyledTableCell>
+                            <StyledTableCell>{t('tables.totalCharacters')}</StyledTableCell>
+                            <StyledTableCell>{t('tables.totalChunks')}</StyledTableCell>
+                            <StyledTableCell>{t('tables.loaderTypes')}</StyledTableCell>
                             {showActions && (
                                 <StyledTableCell align='right' sx={{ width: 44, pr: 1 }}>
                                     &nbsp;

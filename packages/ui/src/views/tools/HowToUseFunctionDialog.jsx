@@ -1,8 +1,10 @@
 import { createPortal } from 'react-dom'
 import PropTypes from 'prop-types'
 import { Dialog, DialogContent, DialogTitle } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 const HowToUseFunctionDialog = ({ show, onCancel }) => {
+    const { t } = useTranslation()
     const portalElement = document.getElementById('portal')
 
     const component = show ? (
@@ -15,24 +17,24 @@ const HowToUseFunctionDialog = ({ show, onCancel }) => {
             aria-describedby='alert-dialog-description'
         >
             <DialogTitle sx={{ fontSize: '1rem' }} id='alert-dialog-title'>
-                How To Use Function
+                {t('tools.howToUseFunction')}
             </DialogTitle>
             <DialogContent>
                 <ul>
-                    <li style={{ marginTop: 10 }}>You can use any libraries imported in Flowise</li>
+                    <li style={{ marginTop: 10 }}>{t('tools.howToUseFunc1')}</li>
                     <li style={{ marginTop: 10 }}>
-                        You can use properties specified in Input Schema as variables with prefix $:
+                        {t('tools.howToUseFunc2')}
                         <ul style={{ marginTop: 10 }}>
                             <li>
-                                Property = <code>userid</code>
+                                {t('tools.property')} = <code>userid</code>
                             </li>
                             <li>
-                                Variable = <code>$userid</code>
+                                {t('tools.variable')} = <code>$userid</code>
                             </li>
                         </ul>
                     </li>
                     <li style={{ marginTop: 10 }}>
-                        You can get default flow config:
+                        {t('tools.howToUseFunc3')}
                         <ul style={{ marginTop: 10 }}>
                             <li>
                                 <code>$flow.sessionId</code>
@@ -52,9 +54,9 @@ const HowToUseFunctionDialog = ({ show, onCancel }) => {
                         </ul>
                     </li>
                     <li style={{ marginTop: 10 }}>
-                        You can get custom variables:&nbsp;<code>{`$vars.<variable-name>`}</code>
+                        {t('tools.howToUseFunc4')}&nbsp;<code>{`$vars.<variable-name>`}</code>
                     </li>
-                    <li style={{ marginTop: 10 }}>Must return a string value at the end of function</li>
+                    <li style={{ marginTop: 10 }}>{t('tools.howToUseFunc5')}</li>
                 </ul>
             </DialogContent>
         </Dialog>
