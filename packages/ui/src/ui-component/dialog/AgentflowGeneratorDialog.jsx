@@ -3,6 +3,7 @@ import { cloneDeep } from 'lodash'
 import { useState, useEffect, useContext, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, OutlinedInput, DialogActions, Button, Dialog, DialogContent, DialogTitle, LinearProgress } from '@mui/material'
 import chatflowsApi from '@/api/chatflows'
 import { closeSnackbar as closeSnackbarAction, enqueueSnackbar as enqueueSnackbarAction } from '@/store/actions'
@@ -19,23 +20,24 @@ import { initNode, showHideInputParams } from '@/utils/genericHelper'
 import DocStoreInputHandler from '@/views/docstore/DocStoreInputHandler'
 import useApi from '@/hooks/useApi'
 
-const defaultInstructions = [
-    {
-        text: 'An agent that can autonomously search the web and generate report'
-    },
-    {
-        text: 'Summarize a document'
-    },
-    {
-        text: 'Generate response to user queries and send it to Slack'
-    },
-    {
-        text: 'A team of agents that can handle all customer queries'
-    }
-]
-
 const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
+    const { t } = useTranslation()
     const portalElement = document.getElementById('portal')
+
+    const defaultInstructions = [
+        {
+            text: t('agentflowGenerator.suggestions.webSearch')
+        },
+        {
+            text: t('agentflowGenerator.suggestions.summarize')
+        },
+        {
+            text: t('agentflowGenerator.suggestions.slackResponse')
+        },
+        {
+            text: t('agentflowGenerator.suggestions.customerTeam')
+        }
+    ]
     const [customAssistantInstruction, setCustomAssistantInstruction] = useState('')
     const [generatedInstruction, setGeneratedInstruction] = useState('')
     const [loading, setLoading] = useState(false)
@@ -122,7 +124,7 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
 
     const displayWarning = (message) => {
         enqueueSnackbar({
-            message: message || 'Please fill in all mandatory fields.',
+            message: message || t('agentflowGenerator.pleaseFillMandatory'),
             options: {
                 key: new Date().getTime() + Math.random(),
                 variant: 'warning',
@@ -189,8 +191,8 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
         if (!isValid) {
             const message =
                 missingFields.length > 0
-                    ? `Please fill in the following required fields: ${missingFields.join(', ')}`
-                    : 'Please fill in all mandatory fields for the selected model.'
+                    ? t('agentflowGenerator.pleaseFillRequired', { fields: missingFields.join(', ') })
+                    : t('agentflowGenerator.pleaseFillModelFields')
             displayWarning(message)
             return
         }
@@ -209,7 +211,7 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
                 onConfirm()
             } else {
                 enqueueSnackbar({
-                    message: response.error || 'Failed to generate agentflow',
+                    message: response.error || t('agentflowGenerator.failedToGenerate'),
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'error',
@@ -224,7 +226,7 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
             }
         } catch (error) {
             enqueueSnackbar({
-                message: error.response?.data?.message || 'Failed to generate agentflow',
+                message: error.response?.data?.message || t('agentflowGenerator.failedToGenerate'),
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -272,7 +274,7 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
                             <img src={generatorGIF} alt='Generating Agentflow' style={{ maxWidth: '100%', height: 'auto' }} />
                             <Typography variant='h5' sx={{ mt: 2 }}>
-                                Generating your Agentflow...
+                                {t('agentflowGenerator.generating')}
                             </Typography>
                             <Box sx={{ width: '100%', mt: 2 }}>
                                 <LinearProgress
@@ -343,7 +345,7 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
                                     rows={12}
                                     disabled={loading}
                                     value={customAssistantInstruction}
-                                    placeholder={'Describe your agent here'}
+                                    placeholder={t('agentflowGenerator.placeholder')}
                                     onChange={(event) => setCustomAssistantInstruction(event.target.value)}
                                 />
                             )}
@@ -360,7 +362,8 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
                             <Box sx={{ mt: 2 }}>
                                 <div style={{ display: 'flex', flexDirection: 'row' }}>
                                     <Typography>
-                                        Select model to generate agentflow<span style={{ color: 'red' }}>&nbsp;*</span>
+                                        {t('agentflowGenerator.selectModel')}
+                                        <span style={{ color: 'red' }}>&nbsp;*</span>
                                     </Typography>
                                 </div>
                                 <Dropdown
@@ -432,7 +435,7 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
                                         !checkMandatoryFields().isValid
                                     }
                                 >
-                                    Generate
+                                    {t('agentflowGenerator.generate')}
                                 </LoadingButton>
                             )}
                             {generatedInstruction && (
@@ -443,7 +446,7 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
                                         setGeneratedInstruction('')
                                     }}
                                 >
-                                    Back
+                                    {t('common.back')}
                                 </Button>
                             )}
                         </>

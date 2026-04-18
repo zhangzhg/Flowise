@@ -3,6 +3,7 @@ import * as PropTypes from 'prop-types'
 import { Fragment, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import {
@@ -162,7 +163,7 @@ function ShowWorkspaceRow(props) {
             <Drawer anchor='right' open={open} onClose={() => setOpen(false)} sx={{ minWidth: 320 }}>
                 <Box sx={{ p: 4, height: 'auto', width: 650 }}>
                     <Typography sx={{ textAlign: 'left', mb: 2 }} variant='h2'>
-                        Users
+                        {t('tables.users')}
                     </Typography>
                     <TableContainer
                         style={{ display: 'flex', flexDirection: 'row' }}
@@ -177,8 +178,8 @@ function ShowWorkspaceRow(props) {
                                 }}
                             >
                                 <TableRow>
-                                    <StyledTableCell sx={{ width: '60%' }}>User</StyledTableCell>
-                                    <StyledTableCell sx={{ width: '40%' }}>Role</StyledTableCell>
+                                    <StyledTableCell sx={{ width: '60%' }}>{t('tables.user')}</StyledTableCell>
+                                    <StyledTableCell sx={{ width: '40%' }}>{t('tables.role')}</StyledTableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -220,6 +221,7 @@ ShowWorkspaceRow.propTypes = {
 // ==============================|| Workspaces ||============================== //
 
 const Workspaces = () => {
+    const { t } = useTranslation()
     const navigate = useNavigate()
     const theme = useTheme()
     const { confirm } = useConfirm()
@@ -407,8 +409,8 @@ const Workspaces = () => {
                             isEditButton={false}
                             onSearchChange={onSearchChange}
                             search={true}
-                            title='Workspaces'
-                            searchPlaceholder='Search Workspaces'
+                            title={t('workspaces.title')}
+                            searchPlaceholder={t('workspaces.searchPlaceholder')}
                         >
                             <StyledPermissionButton
                                 permissionId={'workspace:create'}
@@ -417,7 +419,7 @@ const Workspaces = () => {
                                 onClick={addNew}
                                 startIcon={<IconPlus />}
                             >
-                                Add New
+                                {t('buttons.addNew')}
                             </StyledPermissionButton>
                         </ViewHeader>
                         {!isLoading && workspaces.length <= 0 ? (
@@ -429,7 +431,7 @@ const Workspaces = () => {
                                         alt='workspaces_emptySVG'
                                     />
                                 </Box>
-                                <div>No Workspaces Yet</div>
+                                <div>{t('workspaces.noWorkspaces')}</div>
                             </Stack>
                         ) : (
                             <TableContainer
@@ -446,10 +448,10 @@ const Workspaces = () => {
                                         }}
                                     >
                                         <TableRow>
-                                            <TableCell>Name</TableCell>
-                                            <TableCell>Description</TableCell>
-                                            <TableCell>Users</TableCell>
-                                            <TableCell>Last Updated</TableCell>
+                                            <TableCell>{t('tables.name')}</TableCell>
+                                            <TableCell>{t('tables.description')}</TableCell>
+                                            <TableCell>{t('tables.users')}</TableCell>
+                                            <TableCell>{t('tables.lastUpdated')}</TableCell>
                                             <TableCell> </TableCell>
                                         </TableRow>
                                     </TableHead>

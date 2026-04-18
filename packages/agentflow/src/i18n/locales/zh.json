@@ -1,0 +1,16 @@
+{
+    "agentflowGenerator": {
+        "title": "您想构建什么？",
+        "description": "输入您的提示词来生成智能体流程。不同模型的性能可能有所不同。仅生成节点和边，您需要为每个节点填写输入字段。",
+        "generating": "正在生成您的智能体流程...",
+        "placeholder": "在此描述您的智能体",
+        "selectModel": "选择模型来生成智能体流程",
+        "generate": "生成",
+        "cancel": "取消",
+        "failedToGenerate": "生成流程失败，请重试。",
+        "failedToLoadModels": "加载聊天模型失败，请重试。"
+    },
+    "common": {
+        "cancel": "取消"
+    }
+}

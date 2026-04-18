@@ -1,3 +1,5 @@
+import './i18n'
+
 import { ReactNode, useEffect, useMemo } from 'react'
 import { ReactFlowProvider } from 'reactflow'
 

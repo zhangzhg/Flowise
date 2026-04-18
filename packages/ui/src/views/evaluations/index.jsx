@@ -353,7 +353,7 @@ const EvalsEvaluation = () => {
                                 onClick={createEvaluation}
                                 startIcon={<IconPlus />}
                             >
-                                New Evaluation
+                                {t('buttons.newEvaluation')}
                             </StyledPermissionButton>
                         </ViewHeader>
                         {selected.length > 0 && (
@@ -406,12 +406,12 @@ const EvalsEvaluation = () => {
                                                     />
                                                 </TableCell>
                                                 <TableCell width={10}> </TableCell>
-                                                <TableCell>Name</TableCell>
-                                                <TableCell>Latest Version</TableCell>
-                                                <TableCell>Average Metrics</TableCell>
-                                                <TableCell>Last Evaluated</TableCell>
-                                                <TableCell>Flow(s)</TableCell>
-                                                <TableCell>Dataset</TableCell>
+                                                <TableCell>{t('tables.name')}</TableCell>
+                                                <TableCell>{t('tables.latestVersion')}</TableCell>
+                                                <TableCell>{t('tables.averageMetrics')}</TableCell>
+                                                <TableCell>{t('tables.lastEvaluated')}</TableCell>
+                                                <TableCell>{t('tables.flows')}</TableCell>
+                                                <TableCell>{t('tables.dataset')}</TableCell>
                                                 <TableCell> </TableCell>
                                             </TableRow>
                                         </TableHead>

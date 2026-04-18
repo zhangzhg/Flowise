@@ -246,10 +246,10 @@ const EvalDatasets = () => {
                                             }}
                                         >
                                             <TableRow>
-                                                <TableCell>Name</TableCell>
-                                                <TableCell>Description</TableCell>
-                                                <TableCell>Rows</TableCell>
-                                                <TableCell>Last Updated</TableCell>
+                                                <TableCell>{t('tables.name')}</TableCell>
+                                                <TableCell>{t('tables.description')}</TableCell>
+                                                <TableCell>{t('tables.rows')}</TableCell>
+                                                <TableCell>{t('tables.lastUpdated')}</TableCell>
                                                 <Available permission={'datasets:update,datasets:create'}>
                                                     <TableCell> </TableCell>
                                                 </Available>

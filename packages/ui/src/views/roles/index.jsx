@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
 import * as PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import { styled } from '@mui/material/styles'
@@ -323,7 +324,7 @@ function ShowRoleRow(props) {
             <Drawer anchor='right' open={openAssignedUsersDrawer} onClose={() => setOpenAssignedUsersDrawer(false)} sx={{ minWidth: 320 }}>
                 <Box sx={{ p: 4, height: 'auto', width: 650 }}>
                     <Typography sx={{ textAlign: 'left', mb: 2 }} variant='h2'>
-                        Assigned Users
+                        {t('tables.assignedUsers')}
                     </Typography>
                     <TableContainer
                         style={{ display: 'flex', flexDirection: 'row' }}
@@ -344,7 +345,7 @@ function ShowRoleRow(props) {
                                             direction={orderBy === 'user' ? order : 'asc'}
                                             onClick={() => handleRequestSort('user')}
                                         >
-                                            User
+                                            {t('tables.user')}
                                         </TableSortLabel>
                                     </StyledTableCell>
                                     <StyledTableCell sx={{ width: '50%' }}>
@@ -353,7 +354,7 @@ function ShowRoleRow(props) {
                                             direction={orderBy === 'workspace' ? order : 'asc'}
                                             onClick={() => handleRequestSort('workspace')}
                                         >
-                                            Workspace
+                                            {t('tables.workspace')}
                                         </TableSortLabel>
                                     </StyledTableCell>
                                 </TableRow>
@@ -388,6 +389,7 @@ ShowRoleRow.propTypes = {
 // ==============================|| Roles ||============================== //
 
 const Roles = () => {
+    const { t } = useTranslation()
     const theme = useTheme()
     const customization = useSelector((state) => state.customization)
     const dispatch = useDispatch()
@@ -538,7 +540,12 @@ const Roles = () => {
                     <ErrorBoundary error={error} />
                 ) : (
                     <Stack flexDirection='column' sx={{ gap: 3 }}>
-                        <ViewHeader onSearchChange={onSearchChange} search={true} searchPlaceholder='Search Roles' title='Roles'>
+                        <ViewHeader
+                            onSearchChange={onSearchChange}
+                            search={true}
+                            searchPlaceholder={t('roles.searchPlaceholder')}
+                            title={t('roles.title')}
+                        >
                             <StyledPermissionButton
                                 permissionId={'roles:manage'}
                                 variant='contained'
@@ -547,7 +554,7 @@ const Roles = () => {
                                 startIcon={<IconPlus />}
                                 id='btn_createUser'
                             >
-                                Add Role
+                                {t('roles.addRole')}
                             </StyledPermissionButton>
                         </ViewHeader>
                         {!isLoading && roles.length === 0 ? (
@@ -559,7 +566,7 @@ const Roles = () => {
                                         alt='roles_emptySVG'
                                     />
                                 </Box>
-                                <div>No Roles Yet</div>
+                                <div>{t('roles.noRoles')}</div>
                             </Stack>
                         ) : (
                             <>
@@ -580,10 +587,10 @@ const Roles = () => {
                                                     }}
                                                 >
                                                     <TableRow>
-                                                        <StyledTableCell>Name</StyledTableCell>
-                                                        <StyledTableCell>Description</StyledTableCell>
-                                                        <StyledTableCell>Permissions</StyledTableCell>
-                                                        <StyledTableCell>Assigned Users</StyledTableCell>
+                                                        <StyledTableCell>{t('tables.name')}</StyledTableCell>
+                                                        <StyledTableCell>{t('tables.description')}</StyledTableCell>
+                                                        <StyledTableCell>{t('tables.permissions')}</StyledTableCell>
+                                                        <StyledTableCell>{t('tables.assignedUsers')}</StyledTableCell>
                                                         <StyledTableCell> </StyledTableCell>
                                                     </TableRow>
                                                 </TableHead>

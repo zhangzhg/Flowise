@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
     Alert,
@@ -43,6 +44,7 @@ interface ChatModel {
  * Generate Flow Dialog - AI-powered flow generation
  */
 function GenerateFlowDialogComponent({ open, onClose, onGenerated }: GenerateFlowDialogProps) {
+    const { t } = useTranslation()
     const theme = useTheme()
     const { chatflowsApi, apiBaseUrl } = useApiContext()
     const { isDarkMode: _isDarkMode } = useConfigContext()
@@ -108,7 +110,7 @@ function GenerateFlowDialogComponent({ open, onClose, onGenerated }: GenerateFlo
             }
         } catch (err) {
             console.error('Failed to load chat models:', err)
-            setError('Failed to load chat models. Please try again.')
+            setError(t('agentflowGenerator.failedToLoadModels'))
         } finally {
             setLoadingModels(false)
         }
@@ -137,14 +139,14 @@ function GenerateFlowDialogComponent({ open, onClose, onGenerated }: GenerateFlo
                 onGenerated(result.nodes, result.edges)
                 onClose()
             } else {
-                setError('Failed to generate flow. Please try again.')
+                setError(t('agentflowGenerator.failedToGenerate'))
             }
         } catch (err: unknown) {
             const errorMessage =
                 err instanceof Error
                     ? err.message
                     : (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                      'Failed to generate flow. Please try again.'
+                      t('agentflowGenerator.failedToGenerate')
             setError(errorMessage)
         } finally {
             setLoading(false)
@@ -162,7 +164,7 @@ function GenerateFlowDialogComponent({ open, onClose, onGenerated }: GenerateFlo
             aria-labelledby='generate-flow-dialog-title'
         >
             <DialogTitle sx={{ fontSize: '1rem' }} id='generate-flow-dialog-title'>
-                What would you like to build?
+                {t('agentflowGenerator.title')}
             </DialogTitle>
             <DialogContent>
                 {loading ? (
@@ -176,7 +178,7 @@ function GenerateFlowDialogComponent({ open, onClose, onGenerated }: GenerateFlo
                         }}
                     >
                         <Typography variant='h5' sx={{ mt: 2 }}>
-                            Generating your Agentflow...
+                            {t('agentflowGenerator.generating')}
                         </Typography>
                         <Box sx={{ width: '100%', mt: 3 }}>
                             <LinearProgress
@@ -198,10 +200,7 @@ function GenerateFlowDialogComponent({ open, onClose, onGenerated }: GenerateFlo
                     </Box>
                 ) : (
                     <>
-                        <Typography color='text.secondary'>
-                            Enter your prompt to generate an agentflow. Performance may vary with different models. Only nodes and edges are
-                            generated, you will need to fill in the input fields for each node.
-                        </Typography>
+                        <Typography color='text.secondary'>{t('agentflowGenerator.description')}</Typography>
 
                         <SuggestionChips suggestions={defaultSuggestions} onSelect={handleSuggestionSelect} disabled={loading} />
 
@@ -212,7 +211,7 @@ function GenerateFlowDialogComponent({ open, onClose, onGenerated }: GenerateFlo
                             rows={8}
                             disabled={loading}
                             value={prompt}
-                            placeholder='Describe your agent here'
+                            placeholder={t('agentflowGenerator.placeholder')}
                             onChange={(e) => {
                                 setPrompt(e.target.value)
                                 setError(null)
@@ -221,13 +220,13 @@ function GenerateFlowDialogComponent({ open, onClose, onGenerated }: GenerateFlo
 
                         <FormControl fullWidth sx={{ mt: 2 }}>
                             <InputLabel id='model-select-label'>
-                                Select model to generate agentflow <span style={{ color: 'red' }}>*</span>
+                                {t('agentflowGenerator.selectModel')} <span style={{ color: 'red' }}>*</span>
                             </InputLabel>
                             <Select
                                 labelId='model-select-label'
                                 id='model-select'
                                 value={selectedModel}
-                                label='Select model to generate agentflow *'
+                                label={`${t('agentflowGenerator.selectModel')} *`}
                                 onChange={(e) => setSelectedModel(e.target.value)}
                                 disabled={loading || loadingModels}
                             >
@@ -261,7 +260,7 @@ function GenerateFlowDialogComponent({ open, onClose, onGenerated }: GenerateFlo
                 {!loading && (
                     <>
                         <Button onClick={onClose} color='inherit'>
-                            Cancel
+                            {t('agentflowGenerator.cancel')}
                         </Button>
                         <Button
                             variant='contained'
@@ -276,7 +275,7 @@ function GenerateFlowDialogComponent({ open, onClose, onGenerated }: GenerateFlo
                                 }
                             }}
                         >
-                            Generate
+                            {t('agentflowGenerator.generate')}
                         </Button>
                     </>
                 )}

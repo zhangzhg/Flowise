@@ -328,6 +328,56 @@
         "toolLatency": "Tool Latency",
         "llmLatency": "LLM Latency"
     },
+    "roles": {
+        "title": "Roles",
+        "searchPlaceholder": "Search Roles",
+        "addRole": "Add Role",
+        "noRoles": "No Roles Yet"
+    },
+    "users": {
+        "title": "User Management",
+        "searchPlaceholder": "Search Users"
+    },
+    "workspaces": {
+        "title": "Workspaces",
+        "searchPlaceholder": "Search Workspaces",
+        "noWorkspaces": "No Workspaces Yet"
+    },
+    "leads": {
+        "noLeads": "No Leads"
+    },
+    "agentflowGenerator": {
+        "title": "What would you like to build?",
+        "description": "Enter your prompt to generate an agentflow. Performance may vary with different models. Only nodes and edges are generated, you will need to fill in the input fields for each node.",
+        "generating": "Generating your Agentflow...",
+        "placeholder": "Describe your agent here",
+        "selectModel": "Select model to generate agentflow",
+        "generate": "Generate",
+        "cancel": "Cancel",
+        "failedToGenerate": "Failed to generate agentflow",
+        "failedToLoadModels": "Failed to load chat models. Please try again.",
+        "pleaseFillMandatory": "Please fill in all mandatory fields.",
+        "pleaseFillRequired": "Please fill in the following required fields: {{fields}}",
+        "pleaseFillModelFields": "Please fill in all mandatory fields for the selected model.",
+        "suggestions": {
+            "webSearch": "An agent that can autonomously search the web and generate report",
+            "summarize": "Summarize a document",
+            "slackResponse": "Generate response to user queries and send it to Slack",
+            "customerTeam": "A team of agents that can handle all customer queries"
+        }
+    },
+    "addNodes": {
+        "title": "Add Nodes",
+        "addNode": "Add Node",
+        "generateAgentflow": "Generate Agentflow",
+        "searchNodes": "Search nodes",
+        "clearSearch": "Clear Search",
+        "tabs": {
+            "langChain": "LangChain",
+            "llamaIndex": "LlamaIndex",
+            "utilities": "Utilities"
+        }
+    },
     "auth": {
         "licenseExpired": "Your enterprise license has expired",
         "licenseExpiredDesc": "Please contact our support team to renew your license.",
@@ -434,7 +484,40 @@
         "session": "Session",
         "created": "Created",
         "path": "Path",
-        "size": "Size"
+        "size": "Size",
+        "value": "Value",
+        "type": "Type",
+        "permissions": "Permissions",
+        "usage": "Usage",
+        "updated": "Updated",
+        "emailName": "Email/Name",
+        "assignedRoles": "Assigned Roles",
+        "lastLogin": "Last Login",
+        "role": "Role",
+        "workspace": "Workspace",
+        "user": "User",
+        "assignedUsers": "Assigned Users",
+        "users": "Users",
+        "latestVersion": "Latest Version",
+        "averageMetrics": "Average Metrics",
+        "lastEvaluated": "Last Evaluated",
+        "flows": "Flow(s)",
+        "dataset": "Dataset",
+        "details": "Details",
+        "rows": "Rows",
+        "emailAddress": "Email Address",
+        "phone": "Phone",
+        "createdDate": "Created Date"
+    },
+    "buttons": {
+        "addNew": "Add New",
+        "addVariable": "Add Variable",
+        "addCredential": "Add Credential",
+        "inviteUser": "Invite User",
+        "newEvaluation": "New Evaluation",
+        "newEvaluator": "New Evaluator",
+        "howToUse": "How To Use",
+        "export": "Export"
     },
     "nodes": {
         "agentAgentflow": "Dynamically choose and utilize tools during runtime, enabling multi-step reasoning",

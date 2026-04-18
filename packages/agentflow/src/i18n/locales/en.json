@@ -1,0 +1,16 @@
+{
+    "agentflowGenerator": {
+        "title": "What would you like to build?",
+        "description": "Enter your prompt to generate an agentflow. Performance may vary with different models. Only nodes and edges are generated, you will need to fill in the input fields for each node.",
+        "generating": "Generating your Agentflow...",
+        "placeholder": "Describe your agent here",
+        "selectModel": "Select model to generate agentflow",
+        "generate": "Generate",
+        "cancel": "Cancel",
+        "failedToGenerate": "Failed to generate flow. Please try again.",
+        "failedToLoadModels": "Failed to load chat models. Please try again."
+    },
+    "common": {
+        "cancel": "Cancel"
+    }
+}
