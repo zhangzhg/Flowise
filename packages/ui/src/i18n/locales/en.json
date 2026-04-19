@@ -731,8 +731,22 @@
             "descriptionPlaceholder": "Enter description",
             "selectVectorStore": "Select Vector Store",
             "selectEmbeddings": "Select Embeddings",
+            "selectRecordManager": "Select Record Manager",
+            "recordManagerNotApplicable": "Record Manager is not applicable for selected Vector Store",
+            "configureTitle": "Configure Embeddings, Vector Store and Record Manager",
+            "reset": "Reset",
+            "saveConfig": "Save Config",
+            "upsert": "Upsert",
+            "upsertHistory": "Upsert History",
+            "steps": {
+                "embeddings": "Embeddings",
+                "vectorStore": "Vector Store",
+                "recordManager": "Record Manager"
+            },
             "addedSuccess": "New Document Store added",
-            "addFailed": "Failed to add new Document Store: {{message}}"
+            "addFailed": "Failed to add new Document Store: {{message}}",
+            "configSaved": "Vector Store Config saved",
+            "configSaveFailed": "Failed to save Vector Store Config: {{message}}"
         },
         "assistant": {
             "addTitle": "Add Custom Assistant",
@@ -750,6 +764,9 @@
         }
     },
     "nodes": {
+        "editName": "Edit Name",
+        "saveName": "Save Name",
+        "cancel": "Cancel",
         "agentAgentflow": "Dynamically choose and utilize tools during runtime, enabling multi-step reasoning",
         "conditionAgentflow": "Split flows based on If Else conditions",
         "conditionAgentAgentflow": "Utilize an agent to split flows based on dynamic conditions",

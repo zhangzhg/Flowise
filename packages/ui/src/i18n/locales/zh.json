@@ -731,8 +731,22 @@
             "descriptionPlaceholder": "请输入描述",
             "selectVectorStore": "选择向量存储",
             "selectEmbeddings": "选择嵌入模型",
+            "selectRecordManager": "选择记录管理器",
+            "recordManagerNotApplicable": "记录管理器不适用于所选向量存储",
+            "configureTitle": "配置嵌入模型、向量存储和记录管理器",
+            "reset": "重置",
+            "saveConfig": "保存配置",
+            "upsert": "上传",
+            "upsertHistory": "上传历史",
+            "steps": {
+                "embeddings": "嵌入模型",
+                "vectorStore": "向量存储",
+                "recordManager": "记录管理器"
+            },
             "addedSuccess": "新文档存储已添加",
-            "addFailed": "添加新文档存储失败：{{message}}"
+            "addFailed": "添加新文档存储失败：{{message}}",
+            "configSaved": "向量存储配置已保存",
+            "configSaveFailed": "保存向量存储配置失败：{{message}}"
         },
         "assistant": {
             "addTitle": "添加自定义助手",
@@ -750,6 +764,9 @@
         }
     },
     "nodes": {
+        "editName": "编辑名称",
+        "saveName": "保存名称",
+        "cancel": "取消",
         "agentAgentflow": "运行时动态选择和使用工具，支持多步推理",
         "conditionAgentflow": "基于 If Else 条件拆分流程",
         "conditionAgentAgentflow": "利用智能体基于动态条件拆分流程",

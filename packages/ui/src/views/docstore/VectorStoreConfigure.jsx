@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { cloneDeep } from 'lodash'
 import { v4 as uuidv4 } from 'uuid'
 import moment from 'moment/moment'
+import { useTranslation } from 'react-i18next'
 
 // material-ui
 import { Button, Stack, Grid, Box, Typography, IconButton, Stepper, Step, StepLabel } from '@mui/material'
@@ -43,16 +44,16 @@ import DynamicFeed from '@mui/icons-material/Filter1'
 import { initNode, showHideInputParams, getFileName } from '@/utils/genericHelper'
 import useNotifier from '@/utils/useNotifier'
 
-// const
-const steps = ['Embeddings', 'Vector Store', 'Record Manager']
-
 const VectorStoreConfigure = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
+    const { t } = useTranslation()
     const { hasAssignedWorkspace } = useAuth()
     useNotifier()
     const { error, setError } = useError()
     const customization = useSelector((state) => state.customization)
+
+    const steps = [t('forms.docStore.steps.embeddings'), t('forms.docStore.steps.vectorStore'), t('forms.docStore.steps.recordManager')]
 
     const { storeId, docId } = useParams()
 
@@ -518,7 +519,7 @@ const VectorStoreConfigure = () => {
                                     isBackButton={true}
                                     search={false}
                                     title={getViewHeaderTitle()}
-                                    description='Configure Embeddings, Vector Store and Record Manager'
+                                    description={t('forms.docStore.configureTitle')}
                                     onBack={() => navigate(-1)}
                                 >
                                     {(Object.keys(selectedEmbeddingsProvider).length > 0 ||
@@ -533,7 +534,7 @@ const VectorStoreConfigure = () => {
                                             startIcon={<IconRefresh />}
                                             onClick={() => resetVectorStoreConfig()}
                                         >
-                                            Reset
+                                            {t('forms.docStore.reset')}
                                         </Button>
                                     )}
                                     {(Object.keys(selectedEmbeddingsProvider).length > 0 ||
@@ -548,7 +549,7 @@ const VectorStoreConfigure = () => {
                                             startIcon={<IconDeviceFloppy />}
                                             onClick={() => saveVectorStoreConfig()}
                                         >
-                                            Save Config
+                                            {t('forms.docStore.saveConfig')}
                                         </Button>
                                     )}
                                     {Object.keys(selectedEmbeddingsProvider).length > 0 &&
@@ -566,10 +567,15 @@ const VectorStoreConfigure = () => {
                                                 startIcon={<IconRowInsertTop />}
                                                 onClick={() => tryAndInsertIntoStore()}
                                             >
-                                                Upsert
+                                                {t('forms.docStore.upsert')}
                                             </Button>
                                         )}
-                                    <IconButton onClick={showUpsertHistoryDrawer} size='small' color='inherit' title='Upsert History'>
+                                    <IconButton
+                                        onClick={showUpsertHistoryDrawer}
+                                        size='small'
+                                        color='inherit'
+                                        title={t('forms.docStore.upsertHistory')}
+                                    >
                                         <IconClock />
                                     </IconButton>
                                 </ViewHeader>
@@ -596,7 +602,7 @@ const VectorStoreConfigure = () => {
                                                     }
                                                 }}
                                             >
-                                                Select Embeddings
+                                                {t('forms.docStore.selectEmbeddings')}
                                             </Button>
                                         ) : (
                                             <Box>
@@ -712,7 +718,7 @@ const VectorStoreConfigure = () => {
                                                 }}
                                                 disabled={isVectorStoreDisabled()}
                                             >
-                                                Select Vector Store
+                                                {t('forms.docStore.selectVectorStore')}
                                             </Button>
                                         ) : (
                                             <Box>
@@ -837,8 +843,8 @@ const VectorStoreConfigure = () => {
                                                 disabled={isRecordManagerDisabled()}
                                             >
                                                 {isRecordManagerUnavailable
-                                                    ? 'Record Manager is not applicable for selected Vector Store'
-                                                    : 'Select Record Manager'}
+                                                    ? t('forms.docStore.recordManagerNotApplicable')
+                                                    : t('forms.docStore.selectRecordManager')}
                                             </Button>
                                         ) : (
                                             <Box>
