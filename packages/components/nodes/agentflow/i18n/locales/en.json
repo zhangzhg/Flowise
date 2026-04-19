@@ -1,0 +1,405 @@
+{
+    "nodes": {
+        "agent": {
+            "label": "Agent",
+            "description": "Dynamically choose and utilize tools during runtime, enabling multi-step reasoning",
+            "inputs": {
+                "model": "Model",
+                "messages": "Messages",
+                "role": "Role",
+                "content": "Content",
+                "openaiBuiltInTools": "OpenAI Built-in Tools",
+                "geminiBuiltInTools": "Gemini Built-in Tools",
+                "anthropicBuiltInTools": "Anthropic Built-in Tools",
+                "tools": "Tools",
+                "tool": "Tool",
+                "requireHumanInput": "Require Human Input",
+                "knowledgeDocumentStores": "Knowledge (Document Stores)",
+                "documentStore": "Document Store",
+                "describeKnowledge": "Describe Knowledge",
+                "returnSourceDocuments": "Return Source Documents",
+                "knowledgeVSEmbeddings": "Knowledge (Vector Embeddings)",
+                "vectorStore": "Vector Store",
+                "embeddingModel": "Embedding Model",
+                "knowledgeName": "Knowledge Name",
+                "enableMemory": "Enable Memory",
+                "memoryType": "Memory Type",
+                "windowSize": "Window Size",
+                "maxTokenLimit": "Max Token Limit",
+                "inputMessage": "Input Message",
+                "returnResponseAs": "Return Response As",
+                "jsonStructuredOutput": "JSON Structured Output",
+                "key": "Key",
+                "type": "Type",
+                "enumValues": "Enum Values",
+                "jsonSchema": "JSON Schema",
+                "description": "Description",
+                "updateFlowState": "Update Flow State",
+                "value": "Value"
+            },
+            "options": {
+                "system": "System",
+                "assistant": "Assistant",
+                "developer": "Developer",
+                "user": "User",
+                "webSearch": "Web Search",
+                "codeInterpreter": "Code Interpreter",
+                "imageGeneration": "Image Generation",
+                "urlContext": "URL Context",
+                "googleSearch": "Google Search",
+                "codeExecution": "Code Execution",
+                "webFetch": "Web Fetch",
+                "allMessages": "All Messages",
+                "conversationSummary": "Conversation Summary",
+                "conversationSummaryBuffer": "Conversation Summary Buffer",
+                "userMessage": "User Message",
+                "assistantMessage": "Assistant Message",
+                "string": "String",
+                "stringArray": "String Array",
+                "number": "Number",
+                "boolean": "Boolean",
+                "enum": "Enum",
+                "jsonArray": "JSON Array"
+            },
+            "descriptions": {
+                "webSearch": "Search the web for the latest information",
+                "codeInterpreter": "Write and run Python code in a sandboxed environment",
+                "imageGeneration": "Generate images based on a text prompt",
+                "urlContext": "Extract content from given URLs",
+                "googleSearch": "Search real-time web content",
+                "codeExecution": "Write and run Python code in a sandboxed environment",
+                "webFetch": "Retrieve full content from specified web pages",
+                "enableMemory": "Enable memory for the conversation thread",
+                "allMessages": "Retrieve all messages from the conversation",
+                "windowSizeDesc": "Uses a fixed window size to surface the last N messages",
+                "conversationSummaryDesc": "Summarizes the whole conversation",
+                "conversationSummaryBufferDesc": "Summarize conversations once token limit is reached. Default to 2000",
+                "inputMessageDesc": "Add an input message as user message at the end of the conversation",
+                "knowledgeDocumentStoresDesc": "Give your agent context about different document sources. Document stores must be upserted in advance.",
+                "knowledgeVSEmbeddingsDesc": "Give your agent context about different document sources from existing vector stores and embeddings",
+                "jsonStructuredOutputDesc": "Instruct the Agent to give output in a JSON structured schema",
+                "updateFlowStateDesc": "Update runtime state during the execution of the workflow"
+            },
+            "placeholders": {
+                "describeKnowledge": "Describe what the knowledge base is about, this is useful for the AI to know when and how to search for correct information",
+                "knowledgeName": "A short name for the knowledge base, this is useful for the AI to know when and how to search for correct information",
+                "enumValues": "value1, value2, value3",
+                "descriptionOfKey": "Description of the key"
+            }
+        },
+        "llm": {
+            "label": "LLM",
+            "description": "Large language models to analyze user-provided inputs and generate responses",
+            "inputs": {
+                "model": "Model",
+                "messages": "Messages",
+                "role": "Role",
+                "content": "Content",
+                "enableMemory": "Enable Memory",
+                "memoryType": "Memory Type",
+                "windowSize": "Window Size",
+                "maxTokenLimit": "Max Token Limit",
+                "inputMessage": "Input Message",
+                "returnResponseAs": "Return Response As",
+                "jsonStructuredOutput": "JSON Structured Output",
+                "key": "Key",
+                "type": "Type",
+                "enumValues": "Enum Values",
+                "jsonSchema": "JSON Schema",
+                "description": "Description",
+                "updateFlowState": "Update Flow State",
+                "value": "Value"
+            },
+            "options": {
+                "system": "System",
+                "assistant": "Assistant",
+                "developer": "Developer",
+                "user": "User",
+                "allMessages": "All Messages",
+                "conversationSummary": "Conversation Summary",
+                "conversationSummaryBuffer": "Conversation Summary Buffer",
+                "userMessage": "User Message",
+                "assistantMessage": "Assistant Message",
+                "string": "String",
+                "stringArray": "String Array",
+                "number": "Number",
+                "boolean": "Boolean",
+                "enum": "Enum",
+                "jsonArray": "JSON Array"
+            },
+            "descriptions": {
+                "enableMemory": "Enable memory for the conversation thread",
+                "allMessages": "Retrieve all messages from the conversation",
+                "windowSizeDesc": "Uses a fixed window size to surface the last N messages",
+                "conversationSummaryDesc": "Summarizes the whole conversation",
+                "conversationSummaryBufferDesc": "Summarize conversations once token limit is reached. Default to 2000",
+                "inputMessageDesc": "Add an input message as user message at the end of the conversation",
+                "jsonStructuredOutputDesc": "Instruct the LLM to give output in a JSON structured schema",
+                "updateFlowStateDesc": "Update runtime state during the execution of the workflow"
+            },
+            "placeholders": {
+                "enumValues": "value1, value2, value3",
+                "descriptionOfKey": "Description of the key"
+            }
+        },
+        "start": {
+            "label": "Start",
+            "description": "Starting point of the agentflow",
+            "inputs": {
+                "inputType": "Input Type",
+                "formTitle": "Form Title",
+                "formDescription": "Form Description",
+                "formInputTypes": "Form Input Types",
+                "type": "Type",
+                "label": "Label",
+                "variableName": "Variable Name",
+                "addOptions": "Add Options",
+                "option": "Option",
+                "ephemeralMemory": "Ephemeral Memory",
+                "flowState": "Flow State",
+                "key": "Key",
+                "value": "Value",
+                "persistState": "Persist State"
+            },
+            "options": {
+                "chatInput": "Chat Input",
+                "formInput": "Form Input",
+                "string": "String",
+                "number": "Number",
+                "boolean": "Boolean",
+                "options": "Options"
+            },
+            "descriptions": {
+                "chatInput": "Start the conversation with chat input",
+                "formInput": "Start the workflow with form inputs",
+                "formInputTypesDesc": "Specify the type of form input",
+                "ephemeralMemoryDesc": "Start fresh for every execution without past chat history",
+                "flowStateDesc": "Runtime state during the execution of the workflow",
+                "persistStateDesc": "Persist the state in the same session"
+            },
+            "placeholders": {
+                "formTitle": "Please Fill Out The Form",
+                "formDescription": "Complete all fields below to continue",
+                "label": "Label for the input",
+                "variableName": "Variable name for the input (must be camel case)",
+                "key": "Foo",
+                "value": "Bar"
+            }
+        },
+        "condition": {
+            "label": "Condition",
+            "description": "Split flows based on If Else conditions",
+            "inputs": {
+                "conditions": "Conditions",
+                "type": "Type",
+                "value1": "Value 1",
+                "operation": "Operation",
+                "value2": "Value 2"
+            },
+            "options": {
+                "string": "String",
+                "number": "Number",
+                "boolean": "Boolean",
+                "contains": "Contains",
+                "endsWith": "Ends With",
+                "equal": "Equal",
+                "notContains": "Not Contains",
+                "notEqual": "Not Equal",
+                "regex": "Regex",
+                "startsWith": "Starts With",
+                "isEmpty": "Is Empty",
+                "notEmpty": "Not Empty",
+                "smaller": "Smaller",
+                "smallerEqual": "Smaller Equal",
+                "larger": "Larger",
+                "largerEqual": "Larger Equal"
+            },
+            "descriptions": {
+                "conditionsDesc": "Values to compare",
+                "value1Desc": "First value to be compared with",
+                "operationDesc": "Type of operation",
+                "value2Desc": "Second value to be compared with"
+            },
+            "outputs": {
+                "condition0": "Condition 0",
+                "else": "Else"
+            }
+        },
+        "conditionAgent": {
+            "label": "Condition Agent",
+            "description": "Use LLM to determine which condition path to take",
+            "inputs": {
+                "model": "Model",
+                "scenarios": "Scenarios",
+                "scenario": "Scenario",
+                "name": "Name",
+                "description": "Description"
+            },
+            "descriptions": {
+                "scenariosDesc": "List of scenarios to match against"
+            }
+        },
+        "tool": {
+            "label": "Tool",
+            "description": "Tools allow LLM to interact with external systems",
+            "inputs": {
+                "tool": "Tool",
+                "toolInputArguments": "Tool Input Arguments",
+                "inputArgumentName": "Input Argument Name",
+                "inputArgumentValue": "Input Argument Value",
+                "updateFlowState": "Update Flow State",
+                "key": "Key",
+                "value": "Value"
+            },
+            "descriptions": {
+                "updateFlowStateDesc": "Update runtime state during the execution of the workflow"
+            }
+        },
+        "http": {
+            "label": "HTTP",
+            "description": "Send a HTTP request",
+            "inputs": {
+                "method": "Method",
+                "url": "URL",
+                "headers": "Headers",
+                "key": "Key",
+                "value": "Value",
+                "queryParams": "Query Params",
+                "bodyType": "Body Type",
+                "body": "Body",
+                "responseType": "Response Type"
+            },
+            "options": {
+                "get": "GET",
+                "post": "POST",
+                "put": "PUT",
+                "delete": "DELETE",
+                "patch": "PATCH",
+                "json": "JSON",
+                "raw": "Raw",
+                "formData": "Form Data",
+                "xWwwFormUrlencoded": "x-www-form-urlencoded",
+                "text": "Text",
+                "arrayBuffer": "Array Buffer",
+                "base64": "Raw (Base64)"
+            },
+            "credentials": {
+                "httpCredential": "HTTP Credential"
+            }
+        },
+        "customFunction": {
+            "label": "Custom Function",
+            "description": "Execute custom function",
+            "inputs": {
+                "inputVariables": "Input Variables",
+                "variableName": "Variable Name",
+                "variableValue": "Variable Value",
+                "javascriptFunction": "Javascript Function",
+                "updateFlowState": "Update Flow State",
+                "key": "Key",
+                "value": "Value"
+            },
+            "descriptions": {
+                "inputVariablesDesc": "Input variables can be used in the function with prefix $. For example: $foo",
+                "javascriptFunctionDesc": "The function to execute. Must return a string or an object that can be converted to a string.",
+                "updateFlowStateDesc": "Update runtime state during the execution of the workflow"
+            }
+        },
+        "directReply": {
+            "label": "Direct Reply",
+            "description": "Directly reply to the user with a message",
+            "inputs": {
+                "message": "Message"
+            }
+        },
+        "humanInput": {
+            "label": "Human Input",
+            "description": "Pause the workflow and wait for human input before continuing",
+            "inputs": {
+                "message": "Message",
+                "inputType": "Input Type",
+                "options": "Options",
+                "option": "Option",
+                "defaultOption": "Default Option"
+            },
+            "options": {
+                "string": "String",
+                "number": "Number",
+                "boolean": "Boolean",
+                "options": "Options"
+            },
+            "descriptions": {
+                "messageDesc": "Message to display to the user",
+                "inputTypeDesc": "Type of input expected from the user",
+                "optionsDesc": "Options for the user to select from",
+                "defaultOptionDesc": "Default option to select"
+            }
+        },
+        "iteration": {
+            "label": "Iteration",
+            "description": "Iterate over a list of items",
+            "inputs": {
+                "items": "Items",
+                "item": "Item"
+            },
+            "descriptions": {
+                "itemsDesc": "List of items to iterate over"
+            }
+        },
+        "loop": {
+            "label": "Loop",
+            "description": "Loop until a condition is met",
+            "inputs": {
+                "condition": "Condition",
+                "maxIterations": "Max Iterations"
+            },
+            "descriptions": {
+                "conditionDesc": "Condition to check for each iteration",
+                "maxIterationsDesc": "Maximum number of iterations"
+            }
+        },
+        "retriever": {
+            "label": "Retriever",
+            "description": "Retrieve documents from a vector store",
+            "inputs": {
+                "vectorStore": "Vector Store",
+                "embeddingModel": "Embedding Model",
+                "topK": "Top K",
+                "scoreThreshold": "Score Threshold"
+            },
+            "descriptions": {
+                "topKDesc": "Number of documents to retrieve",
+                "scoreThresholdDesc": "Minimum score threshold for retrieved documents"
+            }
+        },
+        "executeFlow": {
+            "label": "Execute Flow",
+            "description": "Execute another flow within the current flow",
+            "inputs": {
+                "flow": "Flow",
+                "input": "Input"
+            },
+            "descriptions": {
+                "flowDesc": "Flow to execute",
+                "inputDesc": "Input to pass to the flow"
+            }
+        },
+        "stickyNote": {
+            "label": "Sticky Note",
+            "description": "Add notes to the canvas",
+            "inputs": {
+                "content": "Content",
+                "color": "Color"
+            },
+            "descriptions": {
+                "contentDesc": "Content of the sticky note"
+            }
+        }
+    },
+    "common": {
+        "optional": "Optional",
+        "default": "Default",
+        "description": "Description",
+        "placeholder": "Placeholder"
+    }
+}

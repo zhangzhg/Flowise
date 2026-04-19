@@ -2,7 +2,7 @@ import { cloneDeep, omit } from 'lodash'
 import { StatusCodes } from 'http-status-codes'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { INodeData, MODE } from '../../Interface'
-import { INode, INodeOptionsValue, INodeParams, ClientType } from 'flowise-components'
+import { INode, INodeOptionsValue, INodeParams, ClientType, translateNode, LocaleCode } from 'flowise-components'
 import { databaseEntities } from '../../utils'
 import logger from '../../utils/logger'
 import { InternalFlowiseError } from '../../errors/internalFlowiseError'
@@ -10,14 +10,19 @@ import { getErrorMessage } from '../../errors/utils'
 import { OMIT_QUEUE_JOB_DATA } from '../../utils/constants'
 import { executeCustomNodeFunction } from '../../utils/executeCustomNodeFunction'
 
-// Get all component nodes
-const getAllNodes = async (client?: ClientType) => {
+const AGENT_FLOWS_CATEGORY = 'Agent Flows'
+
+const getAllNodes = async (client?: ClientType, locale?: LocaleCode) => {
     try {
         const appServer = getRunningExpressApp()
         const dbResponse = []
         for (const nodeName in appServer.nodesPool.componentNodes) {
             const clonedNode = cloneDeep(appServer.nodesPool.componentNodes[nodeName])
-            dbResponse.push(filterNodeByClient(clonedNode, client))
+            let filteredNode = filterNodeByClient(clonedNode, client)
+            if (locale && filteredNode.category === AGENT_FLOWS_CATEGORY) {
+                filteredNode = translateNode(filteredNode, locale)
+            }
+            dbResponse.push(filteredNode)
         }
         return dbResponse
     } catch (error) {
@@ -25,8 +30,7 @@ const getAllNodes = async (client?: ClientType) => {
     }
 }
 
-// Get all component nodes for a specific category
-const getAllNodesForCategory = async (category: string, client?: ClientType) => {
+const getAllNodesForCategory = async (category: string, client?: ClientType, locale?: LocaleCode) => {
     try {
         const appServer = getRunningExpressApp()
         const dbResponse = []
@@ -34,7 +38,11 @@ const getAllNodesForCategory = async (category: string, client?: ClientType) => 
             const componentNode = appServer.nodesPool.componentNodes[nodeName]
             if (componentNode.category === category) {
                 const clonedNode = cloneDeep(componentNode)
-                dbResponse.push(filterNodeByClient(clonedNode, client))
+                let filteredNode = filterNodeByClient(clonedNode, client)
+                if (locale && filteredNode.category === AGENT_FLOWS_CATEGORY) {
+                    filteredNode = translateNode(filteredNode, locale)
+                }
+                dbResponse.push(filteredNode)
             }
         }
         return dbResponse
@@ -46,13 +54,16 @@ const getAllNodesForCategory = async (category: string, client?: ClientType) => 
     }
 }
 
-// Get specific component node via name
-const getNodeByName = async (nodeName: string, client?: ClientType) => {
+const getNodeByName = async (nodeName: string, client?: ClientType, locale?: LocaleCode) => {
     try {
         const appServer = getRunningExpressApp()
         if (Object.prototype.hasOwnProperty.call(appServer.nodesPool.componentNodes, nodeName)) {
             const clonedNode = cloneDeep(appServer.nodesPool.componentNodes[nodeName])
-            return filterNodeByClient(clonedNode, client)
+            let filteredNode = filterNodeByClient(clonedNode, client)
+            if (locale && filteredNode.category === AGENT_FLOWS_CATEGORY) {
+                filteredNode = translateNode(filteredNode, locale)
+            }
+            return filteredNode
         } else {
             throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Node ${nodeName} not found`)
         }

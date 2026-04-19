@@ -152,3 +152,12 @@ You can view the Flowise Docs [here](https://docs.flowiseai.com/)
 ## 📄 License
 
 Source code in this repository is made available under the [Apache License Version 2.0](LICENSE.md).
+
+## 其他
+
+React 18 的 StrictMode 在开发模式下会故意将 useEffect 执行两次（挂载 → 卸载 → 重新挂载），以帮助发现副作用问题。这导致所有通过 useEffect 发起的 API 请求都被调用两次。
+
+为什么 login 不受影响？
+Login 是由用户点击按钮触发的（signIn.jsx:88 loginApi.request(body)），而不是 useEffect，所以不受 StrictMode 双调影响。
+
+注意： 这只影响开发模式（npm run dev），生产构建中 effects 只执行一次。

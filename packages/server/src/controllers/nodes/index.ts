@@ -1,20 +1,27 @@
 import { Request, Response, NextFunction } from 'express'
 import _ from 'lodash'
 import nodesService from '../../services/nodes'
-import { ClientType, VALID_CLIENT_TYPES } from 'flowise-components'
+import { ClientType, VALID_CLIENT_TYPES, getLocaleFromAcceptLanguage, LocaleCode } from 'flowise-components'
 import { InternalFlowiseError } from '../../errors/internalFlowiseError'
 import { StatusCodes } from 'http-status-codes'
 import { getWorkspaceSearchOptionsFromReq } from '../../enterprise/utils/ControllerServiceUtils'
+import logger from '../../utils/logger'
 
-// if req.query.client does not contain a valid client type, then return undefined so it won't filter the nodes unnecessarily
 const parseClientParam = (req: Request): ClientType | undefined => {
     const raw = req.query.client as ClientType | undefined
     return raw && VALID_CLIENT_TYPES.has(raw) ? (raw as ClientType) : undefined
 }
 
+const parseLocaleFromRequest = (req: Request): LocaleCode => {
+    const acceptLanguage = req.headers['accept-language']
+    return getLocaleFromAcceptLanguage(acceptLanguage)
+}
+
 const getAllNodes = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const apiResponse = await nodesService.getAllNodes(parseClientParam(req))
+        const locale = parseLocaleFromRequest(req)
+        logger.info(`[server]: getAllNodes called with locale: ${locale}`)
+        const apiResponse = await nodesService.getAllNodes(parseClientParam(req), locale)
         return res.json(apiResponse)
     } catch (error) {
         next(error)
@@ -26,7 +33,8 @@ const getNodeByName = async (req: Request, res: Response, next: NextFunction) =>
         if (typeof req.params === 'undefined' || !req.params.name) {
             throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: nodesController.getNodeByName - name not provided!`)
         }
-        const apiResponse = await nodesService.getNodeByName(req.params.name, parseClientParam(req))
+        const locale = parseLocaleFromRequest(req)
+        const apiResponse = await nodesService.getNodeByName(req.params.name, parseClientParam(req), locale)
         return res.json(apiResponse)
     } catch (error) {
         next(error)
@@ -42,7 +50,8 @@ const getNodesByCategory = async (req: Request, res: Response, next: NextFunctio
             )
         }
         const name = _.unescape(req.params.name)
-        const apiResponse = await nodesService.getAllNodesForCategory(name, parseClientParam(req))
+        const locale = parseLocaleFromRequest(req)
+        const apiResponse = await nodesService.getAllNodesForCategory(name, parseClientParam(req), locale)
         return res.json(apiResponse)
     } catch (error) {
         next(error)

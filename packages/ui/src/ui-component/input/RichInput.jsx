@@ -61,7 +61,9 @@ const extensions = (
 ]
 
 // Add styled component for editor wrapper
-const StyledEditorContent = styled(EditorContent)(({ theme, rows, disabled, isDarkMode }) => ({
+const StyledEditorContent = styled(EditorContent, {
+    shouldForwardProp: (prop) => prop !== 'rows' && prop !== 'isDarkMode'
+})(({ theme, rows, disabled, isDarkMode }) => ({
     '& .ProseMirror': {
         padding: '0px 14px',
         height: rows ? `${rows * 1.4375}rem` : '2.4rem',

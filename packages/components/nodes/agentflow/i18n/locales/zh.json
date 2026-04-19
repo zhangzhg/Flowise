@@ -1,0 +1,405 @@
+{
+    "nodes": {
+        "agent": {
+            "label": "智能体",
+            "description": "在运行时动态选择和使用工具，实现多步推理",
+            "inputs": {
+                "model": "模型",
+                "messages": "消息",
+                "role": "角色",
+                "content": "内容",
+                "openaiBuiltInTools": "OpenAI 内置工具",
+                "geminiBuiltInTools": "Gemini 内置工具",
+                "anthropicBuiltInTools": "Anthropic 内置工具",
+                "tools": "工具",
+                "tool": "工具",
+                "requireHumanInput": "需要人工输入",
+                "knowledgeDocumentStores": "知识库 (文档存储)",
+                "documentStore": "文档存储",
+                "describeKnowledge": "描述知识库",
+                "returnSourceDocuments": "返回源文档",
+                "knowledgeVSEmbeddings": "知识库 (向量嵌入)",
+                "vectorStore": "向量存储",
+                "embeddingModel": "嵌入模型",
+                "knowledgeName": "知识库名称",
+                "enableMemory": "启用记忆",
+                "memoryType": "记忆类型",
+                "windowSize": "窗口大小",
+                "maxTokenLimit": "最大令牌限制",
+                "inputMessage": "输入消息",
+                "returnResponseAs": "返回响应为",
+                "jsonStructuredOutput": "JSON 结构化输出",
+                "key": "键",
+                "type": "类型",
+                "enumValues": "枚举值",
+                "jsonSchema": "JSON Schema",
+                "description": "描述",
+                "updateFlowState": "更新流程状态",
+                "value": "值"
+            },
+            "options": {
+                "system": "系统",
+                "assistant": "助手",
+                "developer": "开发者",
+                "user": "用户",
+                "webSearch": "网络搜索",
+                "codeInterpreter": "代码解释器",
+                "imageGeneration": "图像生成",
+                "urlContext": "URL 上下文",
+                "googleSearch": "Google 搜索",
+                "codeExecution": "代码执行",
+                "webFetch": "网页获取",
+                "allMessages": "所有消息",
+                "conversationSummary": "对话摘要",
+                "conversationSummaryBuffer": "对话摘要缓冲",
+                "userMessage": "用户消息",
+                "assistantMessage": "助手消息",
+                "string": "字符串",
+                "stringArray": "字符串数组",
+                "number": "数字",
+                "boolean": "布尔值",
+                "enum": "枚举",
+                "jsonArray": "JSON 数组"
+            },
+            "descriptions": {
+                "webSearch": "搜索网络获取最新信息",
+                "codeInterpreter": "在沙盒环境中编写和运行 Python 代码",
+                "imageGeneration": "根据文本提示生成图像",
+                "urlContext": "从给定 URL 提取内容",
+                "googleSearch": "搜索实时网络内容",
+                "codeExecution": "在沙盒环境中编写和运行 Python 代码",
+                "webFetch": "从指定网页获取完整内容",
+                "enableMemory": "为对话线程启用记忆",
+                "allMessages": "从对话中检索所有消息",
+                "windowSizeDesc": "使用固定窗口大小显示最近 N 条消息",
+                "conversationSummaryDesc": "总结整个对话",
+                "conversationSummaryBufferDesc": "当达到令牌限制时总结对话。默认为 2000",
+                "inputMessageDesc": "在对话末尾添加输入消息作为用户消息",
+                "knowledgeDocumentStoresDesc": "为智能体提供不同文档来源的上下文。文档存储必须提前上传。",
+                "knowledgeVSEmbeddingsDesc": "从现有向量存储和嵌入为智能体提供不同文档来源的上下文",
+                "jsonStructuredOutputDesc": "指示智能体以 JSON 结构化模式输出",
+                "updateFlowStateDesc": "在工作流执行期间更新运行时状态"
+            },
+            "placeholders": {
+                "describeKnowledge": "描述知识库的内容，这有助于 AI 知道何时以及如何搜索正确的信息",
+                "knowledgeName": "知识库的简短名称，这有助于 AI 知道何时以及如何搜索正确的信息",
+                "enumValues": "值1, 值2, 值3",
+                "descriptionOfKey": "键的描述"
+            }
+        },
+        "llm": {
+            "label": "大语言模型",
+            "description": "大语言模型用于分析用户提供的输入并生成响应",
+            "inputs": {
+                "model": "模型",
+                "messages": "消息",
+                "role": "角色",
+                "content": "内容",
+                "enableMemory": "启用记忆",
+                "memoryType": "记忆类型",
+                "windowSize": "窗口大小",
+                "maxTokenLimit": "最大令牌限制",
+                "inputMessage": "输入消息",
+                "returnResponseAs": "返回响应为",
+                "jsonStructuredOutput": "JSON 结构化输出",
+                "key": "键",
+                "type": "类型",
+                "enumValues": "枚举值",
+                "jsonSchema": "JSON Schema",
+                "description": "描述",
+                "updateFlowState": "更新流程状态",
+                "value": "值"
+            },
+            "options": {
+                "system": "系统",
+                "assistant": "助手",
+                "developer": "开发者",
+                "user": "用户",
+                "allMessages": "所有消息",
+                "conversationSummary": "对话摘要",
+                "conversationSummaryBuffer": "对话摘要缓冲",
+                "userMessage": "用户消息",
+                "assistantMessage": "助手消息",
+                "string": "字符串",
+                "stringArray": "字符串数组",
+                "number": "数字",
+                "boolean": "布尔值",
+                "enum": "枚举",
+                "jsonArray": "JSON 数组"
+            },
+            "descriptions": {
+                "enableMemory": "为对话线程启用记忆",
+                "allMessages": "从对话中检索所有消息",
+                "windowSizeDesc": "使用固定窗口大小显示最近 N 条消息",
+                "conversationSummaryDesc": "总结整个对话",
+                "conversationSummaryBufferDesc": "当达到令牌限制时总结对话。默认为 2000",
+                "inputMessageDesc": "在对话末尾添加输入消息作为用户消息",
+                "jsonStructuredOutputDesc": "指示大语言模型以 JSON 结构化模式输出",
+                "updateFlowStateDesc": "在工作流执行期间更新运行时状态"
+            },
+            "placeholders": {
+                "enumValues": "值1, 值2, 值3",
+                "descriptionOfKey": "键的描述"
+            }
+        },
+        "start": {
+            "label": "开始",
+            "description": "智能体流程的起点",
+            "inputs": {
+                "inputType": "输入类型",
+                "formTitle": "表单标题",
+                "formDescription": "表单描述",
+                "formInputTypes": "表单输入类型",
+                "type": "类型",
+                "label": "标签",
+                "variableName": "变量名",
+                "addOptions": "添加选项",
+                "option": "选项",
+                "ephemeralMemory": "临时记忆",
+                "flowState": "流程状态",
+                "key": "键",
+                "value": "值",
+                "persistState": "持久化状态"
+            },
+            "options": {
+                "chatInput": "聊天输入",
+                "formInput": "表单输入",
+                "string": "字符串",
+                "number": "数字",
+                "boolean": "布尔值",
+                "options": "选项"
+            },
+            "descriptions": {
+                "chatInput": "以聊天输入开始对话",
+                "formInput": "以表单输入开始工作流",
+                "formInputTypesDesc": "指定表单输入的类型",
+                "ephemeralMemoryDesc": "每次执行都重新开始，不保留过去的聊天历史",
+                "flowStateDesc": "工作流执行期间的运行时状态",
+                "persistStateDesc": "在同一会话中持久化状态"
+            },
+            "placeholders": {
+                "formTitle": "请填写表单",
+                "formDescription": "完成以下所有字段以继续",
+                "label": "输入的标签",
+                "variableName": "输入的变量名（必须是驼峰命名）",
+                "key": "Foo",
+                "value": "Bar"
+            }
+        },
+        "condition": {
+            "label": "条件",
+            "description": "基于 If Else 条件分支流程",
+            "inputs": {
+                "conditions": "条件",
+                "type": "类型",
+                "value1": "值 1",
+                "operation": "操作",
+                "value2": "值 2"
+            },
+            "options": {
+                "string": "字符串",
+                "number": "数字",
+                "boolean": "布尔值",
+                "contains": "包含",
+                "endsWith": "结尾为",
+                "equal": "等于",
+                "notContains": "不包含",
+                "notEqual": "不等于",
+                "regex": "正则表达式",
+                "startsWith": "开头为",
+                "isEmpty": "为空",
+                "notEmpty": "不为空",
+                "smaller": "小于",
+                "smallerEqual": "小于等于",
+                "larger": "大于",
+                "largerEqual": "大于等于"
+            },
+            "descriptions": {
+                "conditionsDesc": "要比较的值",
+                "value1Desc": "要比较的第一个值",
+                "operationDesc": "操作类型",
+                "value2Desc": "要比较的第二个值"
+            },
+            "outputs": {
+                "condition0": "条件 0",
+                "else": "否则"
+            }
+        },
+        "conditionAgent": {
+            "label": "条件智能体",
+            "description": "使用大语言模型确定走哪条条件路径",
+            "inputs": {
+                "model": "模型",
+                "scenarios": "场景",
+                "scenario": "场景",
+                "name": "名称",
+                "description": "描述"
+            },
+            "descriptions": {
+                "scenariosDesc": "要匹配的场景列表"
+            }
+        },
+        "tool": {
+            "label": "工具",
+            "description": "工具允许大语言模型与外部系统交互",
+            "inputs": {
+                "tool": "工具",
+                "toolInputArguments": "工具输入参数",
+                "inputArgumentName": "输入参数名称",
+                "inputArgumentValue": "输入参数值",
+                "updateFlowState": "更新流程状态",
+                "key": "键",
+                "value": "值"
+            },
+            "descriptions": {
+                "updateFlowStateDesc": "在工作流执行期间更新运行时状态"
+            }
+        },
+        "http": {
+            "label": "HTTP",
+            "description": "发送 HTTP 请求",
+            "inputs": {
+                "method": "方法",
+                "url": "URL",
+                "headers": "请求头",
+                "key": "键",
+                "value": "值",
+                "queryParams": "查询参数",
+                "bodyType": "请求体类型",
+                "body": "请求体",
+                "responseType": "响应类型"
+            },
+            "options": {
+                "get": "GET",
+                "post": "POST",
+                "put": "PUT",
+                "delete": "DELETE",
+                "patch": "PATCH",
+                "json": "JSON",
+                "raw": "原始",
+                "formData": "表单数据",
+                "xWwwFormUrlencoded": "x-www-form-urlencoded",
+                "text": "文本",
+                "arrayBuffer": "数组缓冲",
+                "base64": "原始 (Base64)"
+            },
+            "credentials": {
+                "httpCredential": "HTTP 凭证"
+            }
+        },
+        "customFunction": {
+            "label": "自定义函数",
+            "description": "执行自定义函数",
+            "inputs": {
+                "inputVariables": "输入变量",
+                "variableName": "变量名",
+                "variableValue": "变量值",
+                "javascriptFunction": "Javascript 函数",
+                "updateFlowState": "更新流程状态",
+                "key": "键",
+                "value": "值"
+            },
+            "descriptions": {
+                "inputVariablesDesc": "输入变量可以在函数中使用前缀 $。例如：$foo",
+                "javascriptFunctionDesc": "要执行的函数。必须返回字符串或可以转换为字符串的对象。",
+                "updateFlowStateDesc": "在工作流执行期间更新运行时状态"
+            }
+        },
+        "directReply": {
+            "label": "直接回复",
+            "description": "直接向用户回复消息",
+            "inputs": {
+                "message": "消息"
+            }
+        },
+        "humanInput": {
+            "label": "人工输入",
+            "description": "暂停工作流并等待人工输入后继续",
+            "inputs": {
+                "message": "消息",
+                "inputType": "输入类型",
+                "options": "选项",
+                "option": "选项",
+                "defaultOption": "默认选项"
+            },
+            "options": {
+                "string": "字符串",
+                "number": "数字",
+                "boolean": "布尔值",
+                "options": "选项"
+            },
+            "descriptions": {
+                "messageDesc": "向用户显示的消息",
+                "inputTypeDesc": "期望用户输入的类型",
+                "optionsDesc": "供用户选择的选项",
+                "defaultOptionDesc": "默认选择的选项"
+            }
+        },
+        "iteration": {
+            "label": "迭代",
+            "description": "遍历项目列表",
+            "inputs": {
+                "items": "项目",
+                "item": "项目"
+            },
+            "descriptions": {
+                "itemsDesc": "要遍历的项目列表"
+            }
+        },
+        "loop": {
+            "label": "循环",
+            "description": "循环直到满足条件",
+            "inputs": {
+                "condition": "条件",
+                "maxIterations": "最大迭代次数"
+            },
+            "descriptions": {
+                "conditionDesc": "每次迭代检查的条件",
+                "maxIterationsDesc": "最大迭代次数"
+            }
+        },
+        "retriever": {
+            "label": "检索器",
+            "description": "从向量存储检索文档",
+            "inputs": {
+                "vectorStore": "向量存储",
+                "embeddingModel": "嵌入模型",
+                "topK": "Top K",
+                "scoreThreshold": "分数阈值"
+            },
+            "descriptions": {
+                "topKDesc": "要检索的文档数量",
+                "scoreThresholdDesc": "检索文档的最低分数阈值"
+            }
+        },
+        "executeFlow": {
+            "label": "执行流程",
+            "description": "在当前流程中执行另一个流程",
+            "inputs": {
+                "flow": "流程",
+                "input": "输入"
+            },
+            "descriptions": {
+                "flowDesc": "要执行的流程",
+                "inputDesc": "传递给流程的输入"
+            }
+        },
+        "stickyNote": {
+            "label": "便签",
+            "description": "在画布上添加注释",
+            "inputs": {
+                "content": "内容",
+                "color": "颜色"
+            },
+            "descriptions": {
+                "contentDesc": "便签的内容"
+            }
+        }
+    },
+    "common": {
+        "optional": "可选",
+        "default": "默认",
+        "description": "描述",
+        "placeholder": "占位符"
+    }
+}
