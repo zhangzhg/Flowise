@@ -496,6 +496,10 @@
         "duplicate": "Duplicate",
         "export": "Export"
     },
+    "pagination": {
+        "itemsPerPage": "Items per page:",
+        "itemsRange": "Items {{from}} to {{to}} of {{total}}"
+    },
     "flowListMenu": {
         "options": "Options",
         "rename": "Rename",

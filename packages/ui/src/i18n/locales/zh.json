@@ -496,6 +496,10 @@
         "duplicate": "复制",
         "export": "导出"
     },
+    "pagination": {
+        "itemsPerPage": "每页条数：",
+        "itemsRange": "第 {{from}} - {{to}} 条，共 {{total}} 条"
+    },
     "flowListMenu": {
         "options": "操作",
         "rename": "重命名",

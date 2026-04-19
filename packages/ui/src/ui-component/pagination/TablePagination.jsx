@@ -2,12 +2,14 @@ import { Box, FormControl, MenuItem, Pagination, Select, Typography } from '@mui
 import { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 
 export const DEFAULT_ITEMS_PER_PAGE = 12
 
 const TablePagination = ({ currentPage, limit, total, onChange }) => {
     const theme = useTheme()
+    const { t } = useTranslation()
     const customization = useSelector((state) => state.customization)
     const borderColor = theme.palette.grey[900] + 25
 
@@ -42,7 +44,7 @@ const TablePagination = ({ currentPage, limit, total, onChange }) => {
     return (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography variant='body2'>Items per page:</Typography>
+                <Typography variant='body2'>{t('pagination.itemsPerPage')}</Typography>
                 <FormControl
                     variant='outlined'
                     size='small'
@@ -66,8 +68,11 @@ const TablePagination = ({ currentPage, limit, total, onChange }) => {
             </Box>
             {totalItems > 0 && (
                 <Typography variant='body2'>
-                    Items {activePage * itemsPerPage - itemsPerPage + 1} to{' '}
-                    {activePage * itemsPerPage > totalItems ? totalItems : activePage * itemsPerPage} of {totalItems}
+                    {t('pagination.itemsRange', {
+                        from: activePage * itemsPerPage - itemsPerPage + 1,
+                        to: activePage * itemsPerPage > totalItems ? totalItems : activePage * itemsPerPage,
+                        total: totalItems
+                    })}
                 </Typography>
             )}
             <Pagination count={Math.ceil(totalItems / itemsPerPage)} onChange={handlePageChange} page={activePage} color='primary' />

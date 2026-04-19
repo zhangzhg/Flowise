@@ -5,7 +5,6 @@ import { ClientType, VALID_CLIENT_TYPES, getLocaleFromAcceptLanguage, LocaleCode
 import { InternalFlowiseError } from '../../errors/internalFlowiseError'
 import { StatusCodes } from 'http-status-codes'
 import { getWorkspaceSearchOptionsFromReq } from '../../enterprise/utils/ControllerServiceUtils'
-import logger from '../../utils/logger'
 
 const parseClientParam = (req: Request): ClientType | undefined => {
     const raw = req.query.client as ClientType | undefined
@@ -20,7 +19,6 @@ const parseLocaleFromRequest = (req: Request): LocaleCode => {
 const getAllNodes = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const locale = parseLocaleFromRequest(req)
-        logger.info(`[server]: getAllNodes called with locale: ${locale}`)
         const apiResponse = await nodesService.getAllNodes(parseClientParam(req), locale)
         return res.json(apiResponse)
     } catch (error) {
