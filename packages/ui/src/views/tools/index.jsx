@@ -24,8 +24,15 @@ import { useError } from '@/store/context/ErrorContext'
 import { gridSpacing } from '@/store/constant'
 
 // icons
-import { IconPlus, IconFileUpload, IconLayoutGrid, IconList } from '@tabler/icons-react'
+import { IconPlus, IconFileUpload, IconLayoutGrid, IconList, IconPackage } from '@tabler/icons-react'
 import ToolEmptySVG from '@/assets/images/tools_empty.svg'
+
+// snackbar
+import { useDispatch } from 'react-redux'
+import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
+import useNotifier from '@/utils/useNotifier'
+import { Button } from '@mui/material'
+import { IconX } from '@tabler/icons-react'
 
 // ==============================|| TOOLS ||============================== //
 
@@ -41,6 +48,53 @@ const Tools = () => {
     const [view, setView] = useState(localStorage.getItem('toolsDisplayStyle') || 'card')
 
     const inputRef = useRef(null)
+    const skillInputRef = useRef(null)
+
+    useNotifier()
+    const dispatch = useDispatch()
+    const enqueueSnackbar = (...args) => dispatch(enqueueSnackbarAction(...args))
+    const closeSnackbar = (...args) => dispatch(closeSnackbarAction(...args))
+
+    const handleSkillUpload = async (e) => {
+        if (!e.target.files || !e.target.files[0]) return
+        const file = e.target.files[0]
+        try {
+            const resp = await toolsApi.importSkill(file)
+            if (resp.data) {
+                enqueueSnackbar({
+                    message: t('tools.skillImported', { name: resp.data.name }),
+                    options: {
+                        key: new Date().getTime() + Math.random(),
+                        variant: 'success',
+                        action: (key) => (
+                            <Button style={{ color: 'white' }} onClick={() => closeSnackbar(key)}>
+                                <IconX />
+                            </Button>
+                        )
+                    }
+                })
+                refresh(currentPage, pageLimit)
+            }
+        } catch (error) {
+            const msg = typeof error?.response?.data === 'object' ? error.response.data.message : error?.response?.data || error.message
+            enqueueSnackbar({
+                message: t('tools.skillImportFailed', { error: msg }),
+                options: {
+                    key: new Date().getTime() + Math.random(),
+                    variant: 'error',
+                    persist: true,
+                    action: (key) => (
+                        <Button style={{ color: 'white' }} onClick={() => closeSnackbar(key)}>
+                            <IconX />
+                        </Button>
+                    )
+                }
+            })
+        } finally {
+            // allow re-uploading the same file
+            if (skillInputRef.current) skillInputRef.current.value = ''
+        }
+    }
 
     /* Table Pagination */
     const [currentPage, setCurrentPage] = useState(1)
@@ -200,7 +254,7 @@ const Tools = () => {
                                     <IconList />
                                 </ToggleButton>
                             </ToggleButtonGroup>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <PermissionButton
                                     permissionId={'tools:create'}
                                     variant='outlined'
@@ -217,6 +271,23 @@ const Tools = () => {
                                     hidden
                                     accept='.json'
                                     onChange={(e) => handleFileUpload(e)}
+                                />
+                                <PermissionButton
+                                    permissionId={'tools:create'}
+                                    variant='outlined'
+                                    onClick={() => skillInputRef.current.click()}
+                                    startIcon={<IconPackage />}
+                                    sx={{ borderRadius: 2, height: 40 }}
+                                >
+                                    {t('tools.importSkill')}
+                                </PermissionButton>
+                                <input
+                                    style={{ display: 'none' }}
+                                    ref={skillInputRef}
+                                    type='file'
+                                    hidden
+                                    accept='.zip,.json'
+                                    onChange={(e) => handleSkillUpload(e)}
                                 />
                             </Box>
                             <ButtonGroup disableElevation aria-label='outlined primary button group'>

@@ -10,10 +10,17 @@ const updateTool = (id, body) => client.put(`/tools/${id}`, body)
 
 const deleteTool = (id) => client.delete(`/tools/${id}`)
 
+const importSkill = (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return client.post('/tools/import-skill', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+}
+
 export default {
     getAllTools,
     getSpecificTool,
     createNewTool,
     updateTool,
-    deleteTool
+    deleteTool,
+    importSkill
 }

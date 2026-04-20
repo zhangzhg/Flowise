@@ -3,6 +3,18 @@ import { StatusCodes } from 'http-status-codes'
 import { InternalFlowiseError } from '../../errors/internalFlowiseError'
 import toolsService from '../../services/tools'
 import { getPageAndLimitParams } from '../../utils/pagination'
+import { parseSkillPackage } from '../../utils/openclawSkill/parser'
+import { adaptSkillToTool } from '../../utils/openclawSkill/adapter'
+
+const randomGradient = () => {
+    const c1 = Math.floor(Math.random() * 0xffffff)
+        .toString(16)
+        .padStart(6, '0')
+    const c2 = Math.floor(Math.random() * 0xffffff)
+        .toString(16)
+        .padStart(6, '0')
+    return `linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0)), linear-gradient(103.49deg, #${c1} -28.13%, #${c2} 117.04%)`
+}
 
 const createTool = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -108,10 +120,55 @@ const updateTool = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
+const importSkill = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const file = req.file
+        if (!file) {
+            throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.importSkill - file not provided!`)
+        }
+        const orgId = req.user?.activeOrganizationId
+        if (!orgId) {
+            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Error: toolsController.importSkill - organization ${orgId} not found!`)
+        }
+        const workspaceId = req.user?.activeWorkspaceId
+        if (!workspaceId) {
+            throw new InternalFlowiseError(
+                StatusCodes.NOT_FOUND,
+                `Error: toolsController.importSkill - workspace ${workspaceId} not found!`
+            )
+        }
+
+        let parsed
+        let adapted
+        try {
+            parsed = parseSkillPackage(file.buffer, file.originalname)
+            adapted = adaptSkillToTool(parsed)
+        } catch (e) {
+            throw new InternalFlowiseError(StatusCodes.BAD_REQUEST, `Invalid OpenClaw skill: ${(e as Error).message}`)
+        }
+
+        const toolBody: Record<string, unknown> = {
+            name: adapted.name,
+            description: adapted.description,
+            color: randomGradient(),
+            iconSrc: adapted.iconSrc,
+            schema: adapted.schema,
+            func: adapted.func,
+            workspaceId
+        }
+
+        const apiResponse = await toolsService.createTool(toolBody, orgId)
+        return res.json(apiResponse)
+    } catch (error) {
+        next(error)
+    }
+}
+
 export default {
     createTool,
     deleteTool,
     getAllTools,
     getToolById,
-    updateTool
+    updateTool,
+    importSkill
 }

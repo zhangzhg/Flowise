@@ -167,7 +167,10 @@
         "variable": "变量",
         "create": "创建",
         "load": "导入",
-        "addNewTool": "添加新工具"
+        "addNewTool": "添加新工具",
+        "importSkill": "导入 Skill 包",
+        "skillImported": "已导入 Skill 为工具：{{name}}",
+        "skillImportFailed": "导入 Skill 失败：{{error}}"
     },
     "credentials": {
         "title": "凭证",

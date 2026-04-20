@@ -161,3 +161,28 @@ React 18 的 StrictMode 在开发模式下会故意将 useEffect 执行两次（
 Login 是由用户点击按钮触发的（signIn.jsx:88 loginApi.request(body)），而不是 useEffect，所以不受 StrictMode 双调影响。
 
 注意： 这只影响开发模式（npm run dev），生产构建中 effects 只执行一次。
+
+## 导入技能包扩展
+
+业界没有 "OpenClaw" 的标准，我参照 Claude Code Skill + OpenAI Plugin manifest 设计如下（zip 包结构）：
+my-skill.zip
+├── manifest.json # 必须
+└── entry/
+├── handler.js # type=code 时使用
+├── prompt.md # type=llm 时使用
+└── api.yaml # type=api 时使用（任选其一）
+仅接收 .zip / .json 文件,使用实例：
+
+```json
+{
+    "name": "weatherSkill",
+    "description": "Get current weather for a city",
+    "type": "api",
+    "inputs": [{ "property": "city", "type": "string", "required": true }],
+    "config": {
+        "url": "https://api.weather.com/v1?city=${city}",
+        "method": "GET",
+        "headers": { "Authorization": "Bearer ${vars.WEATHER_KEY}" }
+    }
+}
+```

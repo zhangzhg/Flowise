@@ -170,7 +170,10 @@
         "variable": "Variable",
         "create": "Create",
         "load": "Load",
-        "addNewTool": "Add New Tool"
+        "addNewTool": "Add New Tool",
+        "importSkill": "Import Skill",
+        "skillImported": "Skill imported as tool: {{name}}",
+        "skillImportFailed": "Failed to import skill: {{error}}"
     },
     "credentials": {
         "title": "Credentials",
