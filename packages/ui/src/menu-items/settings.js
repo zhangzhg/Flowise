@@ -34,6 +34,7 @@ const settings = {
         {
             id: 'viewMessages',
             title: 'View Messages',
+            titleKey: 'settingsMenu.viewMessages',
             type: 'item',
             url: '',
             icon: icons.IconMessage
@@ -41,6 +42,7 @@ const settings = {
         {
             id: 'viewLeads',
             title: 'View Leads',
+            titleKey: 'settingsMenu.viewLeads',
             type: 'item',
             url: '',
             icon: icons.IconUsers
@@ -48,6 +50,7 @@ const settings = {
         {
             id: 'viewUpsertHistory',
             title: 'Upsert History',
+            titleKey: 'settingsMenu.viewUpsertHistory',
             type: 'item',
             url: '',
             icon: icons.IconDatabaseExport
@@ -55,6 +58,7 @@ const settings = {
         {
             id: 'chatflowConfiguration',
             title: 'Configuration',
+            titleKey: 'settingsMenu.configuration',
             type: 'item',
             url: '',
             permission: 'chatflows:config',
@@ -63,6 +67,7 @@ const settings = {
         {
             id: 'saveAsTemplate',
             title: 'Save As Template',
+            titleKey: 'settingsMenu.saveAsTemplate',
             type: 'item',
             url: '',
             icon: icons.IconTemplate,
@@ -71,6 +76,7 @@ const settings = {
         {
             id: 'duplicateChatflow',
             title: 'Duplicate Chatflow',
+            titleKey: 'settingsMenu.duplicateChatflow',
             type: 'item',
             url: '',
             icon: icons.IconCopy,
@@ -79,6 +85,7 @@ const settings = {
         {
             id: 'loadChatflow',
             title: 'Load Chatflow',
+            titleKey: 'settingsMenu.loadChatflow',
             type: 'item',
             url: '',
             icon: icons.IconFileUpload,
@@ -87,6 +94,7 @@ const settings = {
         {
             id: 'exportChatflow',
             title: 'Export Chatflow',
+            titleKey: 'settingsMenu.exportChatflow',
             type: 'item',
             url: '',
             icon: icons.IconFileExport,
@@ -95,6 +103,7 @@ const settings = {
         {
             id: 'deleteChatflow',
             title: 'Delete Chatflow',
+            titleKey: 'settingsMenu.deleteChatflow',
             type: 'item',
             url: '',
             icon: icons.IconTrash,

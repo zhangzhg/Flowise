@@ -34,6 +34,7 @@ const agent_settings = {
         {
             id: 'viewMessages',
             title: 'View Messages',
+            titleKey: 'settingsMenu.viewMessages',
             type: 'item',
             url: '',
             icon: icons.IconMessage
@@ -41,6 +42,7 @@ const agent_settings = {
         {
             id: 'viewLeads',
             title: 'View Leads',
+            titleKey: 'settingsMenu.viewLeads',
             type: 'item',
             url: '',
             icon: icons.IconUsers
@@ -48,6 +50,7 @@ const agent_settings = {
         {
             id: 'chatflowConfiguration',
             title: 'Configuration',
+            titleKey: 'settingsMenu.configuration',
             type: 'item',
             url: '',
             icon: icons.IconAdjustmentsHorizontal,
@@ -56,6 +59,7 @@ const agent_settings = {
         {
             id: 'saveAsTemplate',
             title: 'Save As Template',
+            titleKey: 'settingsMenu.saveAsTemplate',
             type: 'item',
             url: '',
             icon: icons.IconTemplate,
@@ -64,6 +68,7 @@ const agent_settings = {
         {
             id: 'duplicateChatflow',
             title: 'Duplicate Agents',
+            titleKey: 'settingsMenu.duplicateAgents',
             type: 'item',
             url: '',
             icon: icons.IconCopy,
@@ -72,6 +77,7 @@ const agent_settings = {
         {
             id: 'loadChatflow',
             title: 'Load Agents',
+            titleKey: 'settingsMenu.loadAgents',
             type: 'item',
             url: '',
             icon: icons.IconFileUpload,
@@ -80,6 +86,7 @@ const agent_settings = {
         {
             id: 'exportChatflow',
             title: 'Export Agents',
+            titleKey: 'settingsMenu.exportAgents',
             type: 'item',
             url: '',
             icon: icons.IconFileExport,
@@ -88,6 +95,7 @@ const agent_settings = {
         {
             id: 'deleteChatflow',
             title: 'Delete Agents',
+            titleKey: 'settingsMenu.deleteAgents',
             type: 'item',
             url: '',
             icon: icons.IconTrash,

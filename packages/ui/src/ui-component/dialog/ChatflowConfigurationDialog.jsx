@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import { useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { Box, Dialog, DialogContent, DialogTitle, Typography, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import {
@@ -39,100 +40,100 @@ import McpServer from '@/ui-component/extended/McpServer'
 
 const CONFIGURATION_GROUPS = [
     {
-        label: 'General',
+        labelKey: 'chatflowConfig.groups.general',
         sections: [
             {
-                label: 'Rate Limit',
+                labelKey: 'chatflowConfig.sections.rateLimit',
+                descriptionKey: 'chatflowConfig.descriptions.rateLimit',
                 id: 'rateLimit',
-                icon: IconShieldLock,
-                description: 'Limit API requests per time window'
+                icon: IconShieldLock
             },
             {
-                label: 'Allowed Domains',
+                labelKey: 'chatflowConfig.sections.allowedDomains',
+                descriptionKey: 'chatflowConfig.descriptions.allowedDomains',
                 id: 'allowedDomains',
-                icon: IconWorldWww,
-                description: 'Restrict chatbot to specific domains'
+                icon: IconWorldWww
             },
             {
-                label: 'Leads',
+                labelKey: 'chatflowConfig.sections.leads',
+                descriptionKey: 'chatflowConfig.descriptions.leads',
                 id: 'leads',
-                icon: IconUserPlus,
-                description: 'Capture visitor contact information'
+                icon: IconUserPlus
             }
         ]
     },
     {
-        label: 'Chat',
+        labelKey: 'chatflowConfig.groups.chat',
         sections: [
             {
-                label: 'Starter Prompts',
+                labelKey: 'chatflowConfig.sections.conversationStarters',
+                descriptionKey: 'chatflowConfig.descriptions.conversationStarters',
                 id: 'conversationStarters',
-                icon: IconMessageChatbot,
-                description: 'Suggested prompts for new conversations'
+                icon: IconMessageChatbot
             },
             {
-                label: 'Follow-up Prompts',
+                labelKey: 'chatflowConfig.sections.followUpPrompts',
+                descriptionKey: 'chatflowConfig.descriptions.followUpPrompts',
                 id: 'followUpPrompts',
-                icon: IconArrowForwardUp,
-                description: 'Auto-generate follow-up questions'
+                icon: IconArrowForwardUp
             },
             {
-                label: 'Chat Feedback',
+                labelKey: 'chatflowConfig.sections.chatFeedback',
+                descriptionKey: 'chatflowConfig.descriptions.chatFeedback',
                 id: 'chatFeedback',
-                icon: IconThumbUp,
-                description: 'Allow users to rate responses'
+                icon: IconThumbUp
             }
         ]
     },
     {
-        label: 'Media & Files',
+        labelKey: 'chatflowConfig.groups.mediaFiles',
         sections: [
             {
-                label: 'Speech to Text',
+                labelKey: 'chatflowConfig.sections.speechToText',
+                descriptionKey: 'chatflowConfig.descriptions.speechToText',
                 id: 'speechToText',
-                icon: IconMicrophone,
-                description: 'Voice input transcription'
+                icon: IconMicrophone
             },
             {
-                label: 'Text to Speech',
+                labelKey: 'chatflowConfig.sections.textToSpeech',
+                descriptionKey: 'chatflowConfig.descriptions.textToSpeech',
                 id: 'textToSpeech',
-                icon: IconVolume,
-                description: 'Audio response playback'
+                icon: IconVolume
             },
             {
-                label: 'File Upload',
+                labelKey: 'chatflowConfig.sections.fileUpload',
+                descriptionKey: 'chatflowConfig.descriptions.fileUpload',
                 id: 'fileUpload',
-                icon: IconUpload,
-                description: 'Allow file uploads in chat'
+                icon: IconUpload
             }
         ]
     },
     {
-        label: 'Advanced',
+        labelKey: 'chatflowConfig.groups.advanced',
         sections: [
             {
-                label: 'Analytics',
+                labelKey: 'chatflowConfig.sections.analytics',
+                descriptionKey: 'chatflowConfig.descriptions.analytics',
                 id: 'analyseChatflow',
-                icon: IconChartBar,
-                description: 'Connect analytics providers'
+                icon: IconChartBar
             },
             {
-                label: 'Post Processing',
+                labelKey: 'chatflowConfig.sections.postProcessing',
+                descriptionKey: 'chatflowConfig.descriptions.postProcessing',
                 id: 'postProcessing',
-                icon: IconCode,
-                description: 'Custom JavaScript post-processing'
+                icon: IconCode
             },
             {
-                label: 'MCP Server',
+                labelKey: 'chatflowConfig.sections.mcpServer',
+                descriptionKey: 'chatflowConfig.descriptions.mcpServer',
                 id: 'mcpServer',
-                icon: IconServer,
-                description: 'Model Context Protocol server'
+                icon: IconServer
             },
             {
-                label: 'Override Config',
+                labelKey: 'chatflowConfig.sections.overrideConfig',
+                descriptionKey: 'chatflowConfig.descriptions.overrideConfig',
                 id: 'overrideConfig',
-                icon: IconAdjustments,
-                description: 'Override flow configuration via API'
+                icon: IconAdjustments
             }
         ]
     }
@@ -202,6 +203,7 @@ const SIDEBAR_WIDTH = 220
 const ChatflowConfigurationDialog = ({ show, isAgentCanvas, dialogProps, onCancel }) => {
     const portalElement = document.getElementById('portal')
     const theme = useTheme()
+    const { t } = useTranslation()
     const chatflow = useSelector((state) => state.canvas.chatflow)
     const customization = useSelector((state) => state.customization)
 
@@ -326,7 +328,7 @@ const ChatflowConfigurationDialog = ({ show, isAgentCanvas, dialogProps, onCance
                     <PerfectScrollbar style={{ height: '100%', overflowX: 'hidden' }}>
                         <Box sx={{ py: 2, px: 1 }}>
                             {filteredGroups.map((group, groupIndex) => (
-                                <Box key={group.label} sx={{ mb: 0.5 }}>
+                                <Box key={group.labelKey} sx={{ mb: 0.5 }}>
                                     {/* Group label */}
                                     <Typography
                                         sx={{
@@ -340,7 +342,7 @@ const ChatflowConfigurationDialog = ({ show, isAgentCanvas, dialogProps, onCance
                                             pb: 0.75
                                         }}
                                     >
-                                        {group.label}
+                                        {t(group.labelKey)}
                                     </Typography>
 
                                     {/* Section items */}
@@ -405,7 +407,7 @@ const ChatflowConfigurationDialog = ({ show, isAgentCanvas, dialogProps, onCance
                                                         textOverflow: 'ellipsis'
                                                     }}
                                                 >
-                                                    {section.label}
+                                                    {t(section.labelKey)}
                                                 </Typography>
 
                                                 {/* Status badge - only show when enabled */}
@@ -424,7 +426,7 @@ const ChatflowConfigurationDialog = ({ show, isAgentCanvas, dialogProps, onCance
                                                             color: isDark ? '#4ade80' : '#16a34a'
                                                         }}
                                                     >
-                                                        ON
+                                                        {t('chatflowConfig.statusOn')}
                                                     </Box>
                                                 )}
                                             </Box>
@@ -458,9 +460,9 @@ const ChatflowConfigurationDialog = ({ show, isAgentCanvas, dialogProps, onCance
                                         mb: 0.25
                                     }}
                                 >
-                                    {currentSectionData?.label || ''}
+                                    {currentSectionData ? t(currentSectionData.labelKey) : ''}
                                 </Typography>
-                                {currentSectionData?.description && (
+                                {currentSectionData?.descriptionKey && (
                                     <Typography
                                         sx={{
                                             fontSize: '0.8rem',
@@ -469,7 +471,7 @@ const ChatflowConfigurationDialog = ({ show, isAgentCanvas, dialogProps, onCance
                                             opacity: isDark ? 0.8 : 1
                                         }}
                                     >
-                                        {currentSectionData.description}
+                                        {t(currentSectionData.descriptionKey)}
                                     </Typography>
                                 )}
                             </Box>

@@ -124,7 +124,15 @@
         "description": "使用您选择的 LLM 创建自定义机器人",
         "searchPlaceholder": "搜索机器人",
         "addNew": "新建自定义机器人",
-        "noAssistants": "暂无自定义机器人"
+        "noAssistants": "暂无自定义机器人",
+        "configTitle": "助手配置",
+        "instructionsLabel": "指令",
+        "generateInstructions": "生成指令",
+        "generateInstructionsDesc": "您可以通过分享任务的基本详情来生成提示词模板。",
+        "embedTitle": "嵌入网站或作为 API 使用",
+        "docStoreDescGenerated": "文档存储工具描述生成成功",
+        "deleteConfirmTitle": "删除",
+        "deleteConfirmDesc": "删除 {{name}}？"
     },
     "marketplaces": {
         "title": "市场",
@@ -344,7 +352,58 @@
         "noWorkspaces": "暂无工作区"
     },
     "leads": {
-        "noLeads": "暂无线索"
+        "noLeads": "暂无线索",
+        "searchPlaceholder": "搜索姓名、邮箱或电话"
+    },
+    "chatflowConfig": {
+        "statusOn": "开启",
+        "groups": {
+            "general": "通用",
+            "chat": "聊天",
+            "mediaFiles": "媒体与文件",
+            "advanced": "高级"
+        },
+        "sections": {
+            "rateLimit": "请求限流",
+            "allowedDomains": "允许的域名",
+            "leads": "线索收集",
+            "conversationStarters": "对话启动器",
+            "followUpPrompts": "追问提示",
+            "chatFeedback": "聊天反馈",
+            "speechToText": "语音转文字",
+            "textToSpeech": "文字转语音",
+            "fileUpload": "文件上传",
+            "analytics": "数据分析",
+            "postProcessing": "后处理",
+            "mcpServer": "MCP 服务器",
+            "overrideConfig": "覆盖配置"
+        },
+        "descriptions": {
+            "rateLimit": "限制每个时间窗口内的 API 请求数",
+            "allowedDomains": "将聊天机器人限制在特定域名",
+            "leads": "收集访客联系信息",
+            "conversationStarters": "为新对话提供建议提示词",
+            "followUpPrompts": "自动生成追问问题",
+            "chatFeedback": "允许用户对回答进行评分",
+            "speechToText": "语音输入转录",
+            "textToSpeech": "音频回复播放",
+            "fileUpload": "允许在聊天中上传文件",
+            "analytics": "接入数据分析提供商",
+            "postProcessing": "自定义 JavaScript 后处理",
+            "mcpServer": "模型上下文协议服务器",
+            "overrideConfig": "通过 API 覆盖流程配置"
+        }
+    },
+    "promptGenerator": {
+        "descriptionPlaceholder": "在此描述您的任务",
+        "tasks": {
+            "summarize": "总结文档",
+            "translate": "翻译语言",
+            "email": "帮我写一封邮件",
+            "convertCode": "将代码转换为另一种语言",
+            "research": "研究并生成报告",
+            "planTrip": "规划一次旅行"
+        }
     },
     "agentflowGenerator": {
         "title": "您想构建什么？",
@@ -494,7 +553,26 @@
         "language": "语言",
         "rename": "重命名",
         "duplicate": "复制",
-        "export": "导出"
+        "export": "导出",
+        "execute": "执行",
+        "generate": "生成",
+        "apply": "应用"
+    },
+    "settingsMenu": {
+        "viewMessages": "查看消息",
+        "viewLeads": "查看线索",
+        "viewUpsertHistory": "向量更新历史",
+        "configuration": "配置",
+        "saveAsTemplate": "保存为模板",
+        "duplicateChatflow": "复制 Chatflow",
+        "loadChatflow": "导入 Chatflow",
+        "exportChatflow": "导出 Chatflow",
+        "deleteChatflow": "删除 Chatflow",
+        "duplicateAgents": "复制 Agents",
+        "loadAgents": "导入 Agents",
+        "exportAgents": "导出 Agents",
+        "deleteAgents": "删除 Agents",
+        "deleteAssistant": "删除助手"
     },
     "pagination": {
         "itemsPerPage": "每页条数：",

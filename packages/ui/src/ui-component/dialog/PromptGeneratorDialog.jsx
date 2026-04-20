@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom'
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { OutlinedInput, DialogActions, Button, Dialog, DialogContent, DialogTitle } from '@mui/material'
 import { StyledButton } from '@/ui-component/button/StyledButton'
@@ -11,34 +12,17 @@ import useNotifier from '@/utils/useNotifier'
 import { LoadingButton } from '@mui/lab'
 
 const defaultInstructions = [
-    {
-        text: 'Summarize a document',
-        img: <IconNotebook />
-    },
-    {
-        text: 'Translate the language',
-        img: <IconLanguage />
-    },
-    {
-        text: 'Write me an email',
-        img: <IconMail />
-    },
-    {
-        text: 'Convert the code to another language',
-        img: <IconCode />
-    },
-    {
-        text: 'Research and generate a report',
-        img: <IconReport />
-    },
-    {
-        text: 'Plan a trip',
-        img: <IconWorld />
-    }
+    { textKey: 'promptGenerator.tasks.summarize', img: <IconNotebook /> },
+    { textKey: 'promptGenerator.tasks.translate', img: <IconLanguage /> },
+    { textKey: 'promptGenerator.tasks.email', img: <IconMail /> },
+    { textKey: 'promptGenerator.tasks.convertCode', img: <IconCode /> },
+    { textKey: 'promptGenerator.tasks.research', img: <IconReport /> },
+    { textKey: 'promptGenerator.tasks.planTrip', img: <IconWorld /> }
 ]
 
 const AssistantPromptGenerator = ({ show, dialogProps, onCancel, onConfirm }) => {
     const portalElement = document.getElementById('portal')
+    const { t } = useTranslation()
     const [customAssistantInstruction, setCustomAssistantInstruction] = useState('')
     const [generatedInstruction, setGeneratedInstruction] = useState('')
     const [loading, setLoading] = useState(false)
@@ -125,12 +109,12 @@ const AssistantPromptGenerator = ({ show, dialogProps, onCancel, onConfirm }) =>
                                     variant='outlined'
                                     color='inherit'
                                     onClick={() => {
-                                        setCustomAssistantInstruction(instruction.text)
+                                        setCustomAssistantInstruction(t(instruction.textKey))
                                         setGeneratedInstruction('')
                                     }}
                                     startIcon={instruction.img}
                                 >
-                                    {instruction.text}
+                                    {t(instruction.textKey)}
                                 </Button>
                             )
                         })}
@@ -143,7 +127,7 @@ const AssistantPromptGenerator = ({ show, dialogProps, onCancel, onConfirm }) =>
                             rows={12}
                             disabled={loading}
                             value={customAssistantInstruction}
-                            placeholder={'Describe your task here'}
+                            placeholder={t('promptGenerator.descriptionPlaceholder')}
                             onChange={(event) => setCustomAssistantInstruction(event.target.value)}
                         />
                     )}
@@ -168,7 +152,7 @@ const AssistantPromptGenerator = ({ show, dialogProps, onCancel, onConfirm }) =>
                             }}
                             startIcon={<IconWand size={20} />}
                         >
-                            Generate
+                            {t('common.generate')}
                         </LoadingButton>
                     )}
                     {generatedInstruction && (
@@ -179,12 +163,12 @@ const AssistantPromptGenerator = ({ show, dialogProps, onCancel, onConfirm }) =>
                                 setGeneratedInstruction('')
                             }}
                         >
-                            Back
+                            {t('common.back')}
                         </Button>
                     )}
                     {generatedInstruction && (
                         <StyledButton variant='contained' onClick={() => onConfirm(generatedInstruction)}>
-                            Apply
+                            {t('common.apply')}
                         </StyledButton>
                     )}
                 </DialogActions>

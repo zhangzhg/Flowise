@@ -19,6 +19,7 @@ const customAssistantSettings = {
         {
             id: 'viewMessages',
             title: 'View Messages',
+            titleKey: 'settingsMenu.viewMessages',
             type: 'item',
             url: '',
             icon: icons.IconMessage
@@ -26,6 +27,7 @@ const customAssistantSettings = {
         {
             id: 'viewLeads',
             title: 'View Leads',
+            titleKey: 'settingsMenu.viewLeads',
             type: 'item',
             url: '',
             icon: icons.IconUsers
@@ -33,6 +35,7 @@ const customAssistantSettings = {
         {
             id: 'chatflowConfiguration',
             title: 'Configuration',
+            titleKey: 'settingsMenu.configuration',
             type: 'item',
             url: '',
             icon: icons.IconAdjustmentsHorizontal,
@@ -41,6 +44,7 @@ const customAssistantSettings = {
         {
             id: 'deleteAssistant',
             title: 'Delete Assistant',
+            titleKey: 'settingsMenu.deleteAssistant',
             type: 'item',
             url: '',
             icon: icons.IconTrash,

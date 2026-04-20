@@ -124,7 +124,15 @@
         "description": "Create custom assistants with your choice of LLMs",
         "searchPlaceholder": "Search Assistants",
         "addNew": "Add New Custom Assistant",
-        "noAssistants": "No Custom Assistants Added Yet"
+        "noAssistants": "No Custom Assistants Added Yet",
+        "configTitle": "Assistant Configuration",
+        "instructionsLabel": "Instructions",
+        "generateInstructions": "Generate Instructions",
+        "generateInstructionsDesc": "You can generate a prompt template by sharing basic details about your task.",
+        "embedTitle": "Embed in website or use as API",
+        "docStoreDescGenerated": "Document Store Tool Description generated successfully",
+        "deleteConfirmTitle": "Delete",
+        "deleteConfirmDesc": "Delete {{name}}?"
     },
     "marketplaces": {
         "title": "Marketplace",
@@ -344,7 +352,58 @@
         "noWorkspaces": "No Workspaces Yet"
     },
     "leads": {
-        "noLeads": "No Leads"
+        "noLeads": "No Leads",
+        "searchPlaceholder": "Search Name or Email or Phone"
+    },
+    "chatflowConfig": {
+        "statusOn": "ON",
+        "groups": {
+            "general": "General",
+            "chat": "Chat",
+            "mediaFiles": "Media & Files",
+            "advanced": "Advanced"
+        },
+        "sections": {
+            "rateLimit": "Rate Limit",
+            "allowedDomains": "Allowed Domains",
+            "leads": "Leads",
+            "conversationStarters": "Starter Prompts",
+            "followUpPrompts": "Follow-up Prompts",
+            "chatFeedback": "Chat Feedback",
+            "speechToText": "Speech to Text",
+            "textToSpeech": "Text to Speech",
+            "fileUpload": "File Upload",
+            "analytics": "Analytics",
+            "postProcessing": "Post Processing",
+            "mcpServer": "MCP Server",
+            "overrideConfig": "Override Config"
+        },
+        "descriptions": {
+            "rateLimit": "Limit API requests per time window",
+            "allowedDomains": "Restrict chatbot to specific domains",
+            "leads": "Capture visitor contact information",
+            "conversationStarters": "Suggested prompts for new conversations",
+            "followUpPrompts": "Auto-generate follow-up questions",
+            "chatFeedback": "Allow users to rate responses",
+            "speechToText": "Voice input transcription",
+            "textToSpeech": "Audio response playback",
+            "fileUpload": "Allow file uploads in chat",
+            "analytics": "Connect analytics providers",
+            "postProcessing": "Custom JavaScript post-processing",
+            "mcpServer": "Model Context Protocol server",
+            "overrideConfig": "Override flow configuration via API"
+        }
+    },
+    "promptGenerator": {
+        "descriptionPlaceholder": "Describe your task here",
+        "tasks": {
+            "summarize": "Summarize a document",
+            "translate": "Translate the language",
+            "email": "Write me an email",
+            "convertCode": "Convert the code to another language",
+            "research": "Research and generate a report",
+            "planTrip": "Plan a trip"
+        }
     },
     "agentflowGenerator": {
         "title": "What would you like to build?",
@@ -494,7 +553,26 @@
         "language": "Language",
         "rename": "Rename",
         "duplicate": "Duplicate",
-        "export": "Export"
+        "export": "Export",
+        "execute": "Execute",
+        "generate": "Generate",
+        "apply": "Apply"
+    },
+    "settingsMenu": {
+        "viewMessages": "View Messages",
+        "viewLeads": "View Leads",
+        "viewUpsertHistory": "Upsert History",
+        "configuration": "Configuration",
+        "saveAsTemplate": "Save As Template",
+        "duplicateChatflow": "Duplicate Chatflow",
+        "loadChatflow": "Load Chatflow",
+        "exportChatflow": "Export Chatflow",
+        "deleteChatflow": "Delete Chatflow",
+        "duplicateAgents": "Duplicate Agents",
+        "loadAgents": "Load Agents",
+        "exportAgents": "Export Agents",
+        "deleteAgents": "Delete Agents",
+        "deleteAssistant": "Delete Assistant"
     },
     "pagination": {
         "itemsPerPage": "Items per page:",
