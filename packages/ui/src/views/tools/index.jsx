@@ -70,7 +70,7 @@ const Tools = () => {
     const onUploadFile = (file) => {
         try {
             const dialogProp = {
-                title: 'Add New Tool',
+                title: t('tools.addNewTool'),
                 type: 'IMPORT',
                 cancelButtonName: 'Cancel',
                 confirmButtonName: 'Save',
@@ -101,7 +101,7 @@ const Tools = () => {
 
     const addNew = () => {
         const dialogProp = {
-            title: 'Add New Tool',
+            title: t('tools.addNewTool'),
             type: 'ADD',
             cancelButtonName: 'Cancel',
             confirmButtonName: 'Add'
@@ -208,7 +208,7 @@ const Tools = () => {
                                     startIcon={<IconFileUpload />}
                                     sx={{ borderRadius: 2, height: 40 }}
                                 >
-                                    Load
+                                    {t('tools.load')}
                                 </PermissionButton>
                                 <input
                                     style={{ display: 'none' }}
@@ -227,7 +227,7 @@ const Tools = () => {
                                     startIcon={<IconPlus />}
                                     sx={{ borderRadius: 2, height: 40 }}
                                 >
-                                    Create
+                                    {t('tools.create')}
                                 </StyledPermissionButton>
                             </ButtonGroup>
                         </ViewHeader>

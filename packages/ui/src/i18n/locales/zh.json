@@ -164,7 +164,10 @@
         "howToUseFunc4": "您可以获取自定义变量：",
         "howToUseFunc5": "函数末尾必须返回一个字符串值",
         "property": "属性",
-        "variable": "变量"
+        "variable": "变量",
+        "create": "创建",
+        "load": "导入",
+        "addNewTool": "添加新工具"
     },
     "credentials": {
         "title": "凭证",

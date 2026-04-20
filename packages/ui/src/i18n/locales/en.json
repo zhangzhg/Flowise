@@ -66,6 +66,9 @@
         "description": "Build single-agent systems, chatbots and simple LLM flows",
         "searchPlaceholder": "Search Name or Category",
         "addNew": "Add New",
+        "create": "Create",
+        "load": "Load",
+        "addNewTool": "Add New Tool",
         "cardView": "Card View",
         "listView": "List View",
         "noChatflows": "No Chatflows Yet"
@@ -164,7 +167,10 @@
         "howToUseFunc4": "You can get custom variables:",
         "howToUseFunc5": "Must return a string value at the end of function",
         "property": "Property",
-        "variable": "Variable"
+        "variable": "Variable",
+        "create": "Create",
+        "load": "Load",
+        "addNewTool": "Add New Tool"
     },
     "credentials": {
         "title": "Credentials",
