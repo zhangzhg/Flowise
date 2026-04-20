@@ -1,4 +1,4 @@
-export type OpenClawSkillType = 'api' | 'code' | 'llm'
+export type OpenClawSkillType = 'api' | 'code' | 'llm' | 'python'
 
 export interface OpenClawSkillInput {
     property: string
@@ -19,6 +19,11 @@ export interface OpenClawLlmConfig {
     model?: string
     apiKeyVar?: string
     promptTemplate?: string
+}
+
+export interface OpenClawPythonConfig {
+    e2bApiKeyVar?: string
+    timeout?: number
 }
 
 export interface OpenClawManifest {

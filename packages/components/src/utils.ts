@@ -121,7 +121,7 @@ export const availableDependencies = [
     'weaviate-client'
 ]
 
-const defaultAllowExternalDependencies = ['axios', 'moment', 'node-fetch']
+const defaultAllowExternalDependencies = ['axios', 'moment', 'node-fetch', '@e2b/code-interpreter']
 
 export const defaultAllowBuiltInDep = ['assert', 'buffer', 'crypto', 'events', 'path', 'querystring', 'timers', 'url', 'zlib']
 

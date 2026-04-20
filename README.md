@@ -171,7 +171,8 @@ my-skill.zip
 ├── handler.js # type=code 时使用
 ├── prompt.md # type=llm 时使用
 └── api.yaml # type=api 时使用（任选其一）
-仅接收 .zip / .json 文件,使用实例：
+
+-   仅接收 .zip / .json 文件,使用实例：
 
 ```json
 {
@@ -186,3 +187,6 @@ my-skill.zip
     }
 }
 ```
+
+-   支持 python 技能包
+    冷启动每次约 1–2s，热路径再快。如果未来要解决冷启动，可以考虑 sandbox 池化，但目前先保持简单。

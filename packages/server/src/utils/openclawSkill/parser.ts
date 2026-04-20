@@ -1,7 +1,7 @@
 import AdmZip from 'adm-zip'
 import { OpenClawManifest, OpenClawSkillType, ParsedSkill } from './types'
 
-const ALLOWED_TYPES: OpenClawSkillType[] = ['api', 'code', 'llm']
+const ALLOWED_TYPES: OpenClawSkillType[] = ['api', 'code', 'llm', 'python']
 
 function assertManifest(raw: unknown): asserts raw is OpenClawManifest {
     if (!raw || typeof raw !== 'object') throw new Error('manifest.json must be a JSON object')
@@ -70,6 +70,12 @@ function parseZipPackage(buffer: Buffer): ParsedSkill {
         const target = zip.getEntries().find((e) => e.entryName.replace(/\\/g, '/') === safe)
         if (!target) throw new Error(`entry file not found in package: ${manifest.entry}`)
         entryContent = target.getData().toString('utf-8')
+        // Friendly guard: .py entry but type isn't 'python'
+        if (safe.toLowerCase().endsWith('.py') && manifest.type !== 'python') {
+            throw new Error(
+                `entry "${manifest.entry}" is a Python file but manifest.type is "${manifest.type}". Set type to "python" to run via E2B.`
+            )
+        }
     }
     return { manifest, entryContent }
 }
