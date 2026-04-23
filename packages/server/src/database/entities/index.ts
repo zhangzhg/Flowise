@@ -19,6 +19,7 @@ import { CustomTemplate } from './CustomTemplate'
 import { Execution } from './Execution'
 import { Pet } from './Pet'
 import { Card } from './Card'
+import { FlowSchedule } from './FlowSchedule'
 import { LoginActivity, WorkspaceShared, WorkspaceUsers } from '../../enterprise/database/entities/EnterpriseEntities'
 import { User } from '../../enterprise/database/entities/user.entity'
 import { Organization } from '../../enterprise/database/entities/organization.entity'
@@ -55,6 +56,7 @@ export const entities = {
     Execution,
     Pet,
     Card,
+    FlowSchedule,
     Organization,
     Role,
     OrganizationUser,

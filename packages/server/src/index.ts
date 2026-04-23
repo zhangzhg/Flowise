@@ -25,6 +25,7 @@ import { NodesPool } from './NodesPool'
 import { QueueManager } from './queue/QueueManager'
 import { RedisEventSubscriber } from './queue/RedisEventSubscriber'
 import flowiseApiV1Router from './routes'
+import schedulerService from './services/schedules'
 import { UsageCacheManager } from './UsageCacheManager'
 import { getEncryptionKey, getNodeModulesPackagePath } from './utils'
 import { API_KEY_BLACKLIST_URLS, WHITELIST_URLS } from './utils/constants'
@@ -152,6 +153,10 @@ export class App {
                 this.redisSubscriber.startPeriodicCleanup()
                 logger.info('🔗 [server]: Redis event subscriber connected successfully')
             }
+
+            // Initialize Scheduler Service
+            await schedulerService.init(this.AppDataSource)
+            logger.info('⏰ [server]: Scheduler service initialized successfully')
 
             logger.info('🎉 [server]: All initialization steps completed successfully!')
         } catch (error) {

@@ -58,6 +58,7 @@ import textToSpeechRouter from './text-to-speech'
 import mcpServerRouter from './mcp-server'
 import mcpEndpointRouter from './mcp-endpoint'
 import petRouter from './pet'
+import schedulesRouter from './schedules'
 
 import authRouter from '../enterprise/routes/auth'
 import auditRouter from '../enterprise/routes/audit'
@@ -130,6 +131,7 @@ router.use('/text-to-speech', textToSpeechRouter)
 router.use('/mcp-server', mcpServerRouter)
 router.use('/mcp', mcpEndpointRouter)
 router.use('/pet', petRouter)
+router.use('/schedules', schedulesRouter)
 
 router.use('/auth', authRouter)
 router.use('/audit', IdentityManager.checkFeatureByPlan('feat:login-activity'), auditRouter)

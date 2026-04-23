@@ -394,6 +394,45 @@
             "descriptions": {
                 "contentDesc": "Content of the sticky note"
             }
+        },
+        "schedule": {
+            "label": "Schedule",
+            "description": "Trigger agentflow on a schedule (delay, interval, or cron expression)",
+            "inputs": {
+                "scheduleType": "Schedule Type",
+                "delay": "Delay (seconds)",
+                "initialDelay": "Initial Delay (seconds)",
+                "interval": "Interval (seconds)",
+                "cronExpression": "Cron Expression",
+                "maxExecutions": "Max Executions",
+                "timezone": "Timezone",
+                "contextParams": "Context Parameters"
+            },
+            "options": {
+                "delay": "Delay",
+                "interval": "Interval",
+                "cron": "Cron"
+            },
+            "descriptions": {
+                "delayDesc": "Execute once after a delay",
+                "intervalDesc": "Execute repeatedly at fixed intervals",
+                "cronDesc": "Execute based on cron expression",
+                "delaySecondsDesc": "Delay in seconds before execution",
+                "initialDelaySecondsDesc": "Delay in seconds before the first execution",
+                "intervalSecondsDesc": "Interval in seconds between executions",
+                "cronExpressionDesc": "Cron expression (e.g., \"0 9 * * 1-5\" for weekdays at 9am)",
+                "maxExecutionsDesc": "Maximum number of times to execute (0 for unlimited)",
+                "timezoneDesc": "Timezone for cron execution (e.g., \"Asia/Shanghai\", \"UTC\")",
+                "contextParamsDesc": "Static key-value pairs injected into the trigger context on each execution"
+            },
+            "placeholders": {
+                "delay": "10",
+                "initialDelay": "0",
+                "interval": "60",
+                "cronExpression": "0 9 * * 1-5",
+                "maxExecutions": "0",
+                "timezone": "UTC"
+            }
         }
     },
     "common": {

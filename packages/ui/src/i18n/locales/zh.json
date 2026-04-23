@@ -912,6 +912,7 @@
         "stickyNoteAgentflow": "在智能体流程中添加备注",
         "toolAgentflow": "工具允许 LLM 与外部系统交互",
         "petAgentflow": "AI 宠物，通过用户互动成长和学习",
+        "scheduleAgentflow": "通过延迟、间隔或 cron 表达式执行定时任务",
         "airtableAgent": "用于回答 Airtable 表格查询的智能体",
         "conversationalAgent": "用于聊天模型的对话智能体，将利用聊天专用提示",
         "conversationalRetrievalToolAgent": "调用向量存储检索并使用函数调用选择工具和参数的智能体",

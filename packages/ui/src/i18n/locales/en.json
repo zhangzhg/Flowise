@@ -915,6 +915,7 @@
         "stickyNoteAgentflow": "Add notes to the agent flow",
         "toolAgentflow": "Tools allow LLM to interact with external systems",
         "petAgentflow": "AI pet that grows and learns from user interactions",
+        "scheduleAgentflow": "Execute tasks on a schedule with delay, interval, or cron expression",
         "airtableAgent": "Agent used to answer queries on Airtable table",
         "conversationalAgent": "Conversational agent for a chat model. It will utilize chat specific prompts",
         "conversationalRetrievalToolAgent": "Agent that calls a vector store retrieval and uses Function Calling to pick the tools and args to call",

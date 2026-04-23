@@ -47,6 +47,7 @@ import { AddReasonContentToChatMessage1764759496768 } from './1764759496768-AddR
 import { AddMcpServerConfigToChatFlow1767000000000 } from './1767000000000-AddMcpServerConfigToChatFlow'
 import { AddPetAndCard1768000000000 } from './1768000000000-AddPetAndCard'
 import { AddPetFlowId1768100000000 } from './1768100000000-AddPetFlowId'
+import { AddFlowSchedule1769200000000 } from './1769200000000-AddFlowSchedule'
 
 import { AddAuthTables1720230151482 } from '../../../enterprise/database/migrations/mysql/1720230151482-AddAuthTables'
 import { AddWorkspace1720230151484 } from '../../../enterprise/database/migrations/mysql/1720230151484-AddWorkspace'
@@ -120,5 +121,6 @@ export const mysqlMigrations = [
     AddReasonContentToChatMessage1764759496768,
     AddMcpServerConfigToChatFlow1767000000000,
     AddPetAndCard1768000000000,
-    AddPetFlowId1768100000000
+    AddPetFlowId1768100000000,
+    AddFlowSchedule1769200000000
 ]

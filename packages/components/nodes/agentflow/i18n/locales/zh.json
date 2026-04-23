@@ -394,6 +394,45 @@
             "descriptions": {
                 "contentDesc": "便签的内容"
             }
+        },
+        "schedule": {
+            "label": "定时触发",
+            "description": "通过延迟、间隔或 cron 表达式触发 agentflow",
+            "inputs": {
+                "scheduleType": "触发类型",
+                "delay": "延迟（秒）",
+                "initialDelay": "初始延迟（秒）",
+                "interval": "间隔（秒）",
+                "cronExpression": "Cron 表达式",
+                "maxExecutions": "最大执行次数",
+                "timezone": "时区",
+                "contextParams": "上下文参数"
+            },
+            "options": {
+                "delay": "延迟执行",
+                "interval": "间隔执行",
+                "cron": "Cron 表达式"
+            },
+            "descriptions": {
+                "delayDesc": "延迟后执行一次",
+                "intervalDesc": "按固定间隔重复执行",
+                "cronDesc": "根据 cron 表达式执行",
+                "delaySecondsDesc": "执行前的延迟秒数",
+                "initialDelaySecondsDesc": "首次执行前的延迟秒数",
+                "intervalSecondsDesc": "每次执行之间的间隔秒数",
+                "cronExpressionDesc": "Cron 表达式（例如：\"0 9 * * 1-5\" 表示工作日上午 9 点）",
+                "maxExecutionsDesc": "最大执行次数（0 表示无限制）",
+                "timezoneDesc": "Cron 执行的时区（例如：\"Asia/Shanghai\"、\"UTC\"）",
+                "contextParamsDesc": "每次触发时注入到上下文中的静态键值对"
+            },
+            "placeholders": {
+                "delay": "10",
+                "initialDelay": "0",
+                "interval": "60",
+                "cronExpression": "0 9 * * 1-5",
+                "maxExecutions": "0",
+                "timezone": "UTC"
+            }
         }
     },
     "common": {

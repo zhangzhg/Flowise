@@ -19,6 +19,7 @@ import { sanitizeAllowedUploadMimeTypesFromConfig } from '../../utils/fileValida
 import { containsBase64File, updateFlowDataWithFilePaths } from '../../utils/fileRepository'
 import { sanitizeFlowDataForPublicEndpoint } from '../../utils/sanitizeFlowData'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
+import schedulerService from '../schedules'
 import { utilGetUploadsConfig } from '../../utils/getUploadsConfig'
 import logger from '../../utils/logger'
 import { updateStorageUsage } from '../../utils/quotaUsage'
@@ -113,6 +114,11 @@ const deleteChatflow = async (chatflowId: string, orgId: string, workspaceId: st
         await getChatflowById(chatflowId, workspaceId)
 
         const dbResponse = await appServer.AppDataSource.getRepository(ChatFlow).delete({ id: chatflowId })
+
+        // Remove any registered schedules for this chatflow
+        schedulerService
+            .removeChatflowSchedules(chatflowId)
+            .catch((e) => logger.error(`[deleteChatflow] Failed to remove schedules for ${chatflowId}:`, e))
 
         // Update document store usage
         await documentStoreService.updateDocumentStoreUsage(chatflowId, undefined, workspaceId)
@@ -332,6 +338,12 @@ const saveChatflow = async (
         { status: FLOWISE_COUNTER_STATUS.SUCCESS }
     )
 
+    if (dbResponse.type === 'AGENTFLOW') {
+        schedulerService
+            .syncChatflowSchedules(dbResponse.id, dbResponse.flowData, workspaceId)
+            .catch((e) => logger.error(`[saveChatflow] Failed to sync schedules for ${dbResponse.id}:`, e))
+    }
+
     return dbResponse
 }
 
@@ -377,6 +389,12 @@ const updateChatflow = async (
     newDbChatflow.workspaceId = workspaceId // defense-in-depth: use trusted param, not chatflow.workspaceId (merge mutates in-place)
     await _checkAndUpdateDocumentStoreUsage(newDbChatflow, workspaceId)
     const dbResponse = await appServer.AppDataSource.getRepository(ChatFlow).save(newDbChatflow)
+
+    if (dbResponse.type === 'AGENTFLOW' && updateChatFlow.flowData) {
+        schedulerService
+            .syncChatflowSchedules(dbResponse.id, dbResponse.flowData, workspaceId)
+            .catch((e) => logger.error(`[updateChatflow] Failed to sync schedules for ${dbResponse.id}:`, e))
+    }
 
     return dbResponse
 }
