@@ -1,0 +1,997 @@
+# Pet Agent System — 详细设计文档
+
+**版本** v1.1 · **状态** 准备实施 · **项目** Flowise 扩展 · **最后更新** 2026-04-20
+
+> v1.1 相对 v1.0 的关键变更：**全面节点化**。Provider 不再是后端服务单例，而是 Flowise 画布上的节点；Pet 业务逻辑拆成一组自定义节点，可自由拼装；同时保留 `PetCore` 聚合节点给"零配置党"。
+
+---
+
+## 目录
+
+-   [0. 阅读导引](#0-阅读导引)
+-   [1. 背景与目标](#1-背景与目标)
+-   [2. 术语表](#2-术语表)
+-   [3. 系统总览](#3-系统总览)
+-   [4. 数据模型](#4-数据模型)
+-   [5. 核心领域模型](#5-核心领域模型)
+-   [6. 教学系统](#6-教学系统)
+-   [7. 能力系统（技能）](#7-能力系统技能)
+-   [8. 节点化架构](#8-节点化架构)
+-   [9. AgentFlow 节点目录](#9-agentflow-节点目录)
+-   [10. 主链拓扑](#10-主链拓扑)
+-   [11. 后台任务](#11-后台任务)
+-   [12. REST API](#12-rest-api)
+-   [13. UI 设计](#13-ui-设计)
+-   [14. 实施阶段计划](#14-实施阶段计划)
+-   [15. 非功能需求](#15-非功能需求)
+-   [16. 风险与开放问题](#16-风险与开放问题)
+-   [17. 附录](#17-附录)
+
+---
+
+## 0. 阅读导引
+
+本文档按"先建概念、再建模型、后排工序"组织。只看交付节奏跳到 §14；看落地细节从 §4 顺序读；看架构决策重点看 §8。
+
+---
+
+## 1. 背景与目标
+
+### 1.1 背景
+
+在 Flowise 上构建一只"有成长记忆的 AI 宠物"：从完全白纸出生，通过用户喂食**卡片**学习词汇/动作/风格，逐步涌现个性；达到一定程度后自动匹配并装配技能，最终成长为带独立人格、可调用工具、具备皮肤与语音的智能体。
+
+### 1.2 核心目标
+
+-   **G1 零基础成长**：新宠物除原始声外不会任何词；每一句话背后必有某张卡作为源头
+-   **G2 可解释的个性**：个性 = 向量（实时）+ 叙事（周期）
+-   **G3 能力动态扩展**：复用 OpenClaw skill 包，等级/个性达标后自动装配
+-   **G4 低成本**：embedding 走本地 bge-small-zh HTTP 服务（用户自部署），LLM 走 GLM-4-flash
+-   **G5 全节点化**：所有业务和 provider 都是 Flowise 节点，AgentFlow 可视化组合
+-   **G6 多模态**：可选挂语音输入/输出节点
+
+### 1.3 非目标（MVP 范围外）
+
+-   宠物之间互动/社交
+-   长期对话记忆之外的 RAG 文档导入
+-   商店/充值/养成竞赛
+-   视觉生成（头像用预置 sprite）
+
+---
+
+## 2. 术语表
+
+| 术语                      | 定义                                                |
+| ------------------------- | --------------------------------------------------- |
+| **Pet**                   | 一只宠物实例，1:1 绑定一个用户                      |
+| **Card**                  | 一条训练数据，分 `vocab`/`phrase`/`action` 三型     |
+| **Stage**                 | 成长阶段，由卡片数派生：egg→babble→echo→talk→mature |
+| **Trait**                 | 单条性格维度（8 维之一）                            |
+| **Personality Vector**    | 8 维实时向量，卡片增量累加                          |
+| **Personality Narrative** | LLM 周期总结的自然语言人设                          |
+| **Skill**                 | OpenClaw 格式的动态工具包，带 `personalityProfile`  |
+| **Intent**                | 输入的语义意图标签（如 `greet`/`play`/`teach`）     |
+| **Skin**                  | 皮肤配置：头像/色调/音色                            |
+| **Tick**                  | 后台时间流逝事件（饥饿/精力衰减）                   |
+
+---
+
+## 3. 系统总览
+
+### 3.1 总架构图
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                     UI Layer (React)                            │
+│  PetPage · CreatePetDialog · FeedCardDialog · Timeline · etc.   │
+└────────────────────────────────────────────────────────────────┘
+                          │ REST /api/v1/pet/*
+                          ▼
+┌────────────────────────────────────────────────────────────────┐
+│              Pet Service & Controllers & Cron                   │
+│   CRUD · Card Ingest · Library Import · Tick · AutoBind         │
+└────────────────────────────────────────────────────────────────┘
+                          │
+         ┌────────────────┼────────────────┐
+         ▼                ▼                ▼
+  ┌───────────┐   ┌──────────────┐   ┌──────────────────────┐
+  │ Entities  │   │ AgentFlow    │   │ Existing OpenClaw    │
+  │ (TypeORM) │   │   Nodes      │   │   Skill System       │
+  └───────────┘   └──────────────┘   └──────────────────────┘
+                          │
+      ┌───────────────────┼───────────────────┐
+      ▼                   ▼                   ▼
+   Pet 业务节点         Provider 节点       Voice 节点
+   (PetCore/           (BgeSmallZh/         (Whisper/
+    Matcher/            ChatGLM/              OpenAITTS...)
+    Ingestor/           CustomHttp...)
+    Responder...)
+```
+
+### 3.2 模块职责速览
+
+| 模块           | 职责                                  | 关键目录                                                         |
+| -------------- | ------------------------------------- | ---------------------------------------------------------------- |
+| Entities       | 持久化 Pet/Card/Binding/Skin/EventLog | `packages/server/src/database/entities/Pet*.ts`                  |
+| Services       | 业务：CRUD、卡片吸收、个性聚合        | `packages/server/src/services/pet/`                              |
+| Pet Nodes      | 宠物业务节点                          | `packages/components/nodes/pet/`                                 |
+| Provider Nodes | Embedding/LLM/Voice 节点              | `packages/components/nodes/embeddings/`, `chatmodels/`, `voice/` |
+| Cron           | 定时：Tick/Personality/SkillBind      | `packages/server/src/utils/pet/cron/`                            |
+| UI             | 宠物相关前端视图                      | `packages/ui/src/views/pet/`                                     |
+
+---
+
+## 4. 数据模型
+
+### 4.1 实体关系
+
+```
+User ──1:1──► Pet ──1:N──► Card
+                │
+                ├─1:N──► IntentSkillBinding ──N:1──► Tool(OpenClaw)
+                ├─1:N──► EventLog
+                └─N:1──► Skin
+```
+
+### 4.2 Pet 实体
+
+```ts
+@Entity()
+class Pet {
+    @PrimaryGeneratedColumn('uuid') id: string
+    @Column({ unique: true }) userId: string // 1:1
+    @Column() workspaceId: string
+    @Column() name: string
+    @Column({ default: 'zh' }) language: 'zh' | 'en' | 'mixed'
+    @Column() birthDate: Date
+    @Column({ nullable: true }) skinId?: string
+
+    @Column({ type: 'json' }) attributes: {
+        mood: number
+        hunger: number
+        energy: number
+        level: number
+        exp: number
+        cardCount: number
+    }
+
+    @Column({ type: 'json' }) personalityVector: number[] // 8 维
+    @Column({ type: 'text', nullable: true }) personalityNarrative?: string
+    @Column({ type: 'timestamp', nullable: true }) personalityNarrativeAt?: Date
+
+    // 注意：embedding/LLM provider 已改为节点层面解决，
+    // 这里只记录维度，用于检测换 provider 后的重嵌需求
+    @Column({ default: 512 }) embeddingDimension: number
+
+    @Column({ type: 'json' }) growthCycle: {
+        cardsThreshold: number
+        hoursThreshold: number
+    }
+
+    @CreateDateColumn() createdDate: Date
+    @UpdateDateColumn() updatedDate: Date
+}
+```
+
+### 4.3 Card 实体
+
+```ts
+@Entity()
+@Index(['petId', 'cardType'])
+class Card {
+    @PrimaryGeneratedColumn('uuid') id: string
+    @Column() petId: string
+
+    @Column() cardType: 'vocab' | 'phrase' | 'action'
+    @Column({ type: 'text' }) input: string
+    @Column({ type: 'text' }) output: string
+
+    @Column({ nullable: true }) intentLabel?: string
+    @Column({ type: 'json', nullable: true }) traitTags?: string[]
+    @Column({ type: 'json', nullable: true }) stateDelta?: {
+        mood?: number
+        energy?: number
+        hunger?: number
+        exp?: number
+    }
+
+    @Column({ type: 'json' }) embedding: number[]
+    @Column({ default: 'user' }) source: 'user' | 'library' | 'parser'
+    @Column({ nullable: true }) libraryName?: string
+
+    @CreateDateColumn() createdDate: Date
+}
+```
+
+### 4.4 IntentSkillBinding 实体
+
+```ts
+@Entity()
+class IntentSkillBinding {
+    @PrimaryGeneratedColumn('uuid') id: string
+    @Column() petId: string
+    @Column() intent: string
+    @Column() skillToolId: string // FK → Tool.id
+    @Column({ default: 'manual' }) source: 'manual' | 'auto'
+    @Column({ type: 'float', nullable: true }) autoBindScore?: number
+    @Column({ default: 0 }) priority: number
+    @CreateDateColumn() createdDate: Date
+}
+```
+
+### 4.5 EventLog 实体
+
+```ts
+@Entity()
+@Index(['petId', 'createdDate'])
+class EventLog {
+    @PrimaryGeneratedColumn('uuid') id: string
+    @Column() petId: string
+    @Column() eventType: string
+    @Column({ type: 'json' }) payload: any
+    @CreateDateColumn() createdDate: Date
+}
+```
+
+### 4.6 Skin 实体（Phase 4）
+
+```ts
+@Entity()
+class Skin {
+    @PrimaryGeneratedColumn('uuid') id: string
+    @Column() name: string
+    @Column() avatarUrl: string
+    @Column({ nullable: true }) accentColor?: string
+    @Column({ type: 'json', nullable: true }) voiceProfile?: {
+        voiceId: string
+        rate?: number
+        pitch?: number
+    }
+    @Column({ type: 'json', nullable: true }) animations?: Record<string, string>
+}
+```
+
+---
+
+## 5. 核心领域模型
+
+### 5.1 成长阶段
+
+| Stage         | 条件    | 输出策略                                      | 可解锁能力          |
+| ------------- | ------- | --------------------------------------------- | ------------------- |
+| **egg 🥚**    | cards=0 | 预设原始音随机（`.../?/~/咕`）                | 仅"学习"指令        |
+| **babble 🐣** | 1–19    | RAG top-1 cosine>0.8 直出，否则原始音         | 学习、简单回应      |
+| **echo 👶**   | 20–99   | 小 LLM + 词汇白名单 prompt + top-5 few-shot   | 以上 + intent 识别  |
+| **talk 🧒**   | 100–499 | 完整 LLM + personalityNarrative system prompt | 以上 + manual skill |
+| **mature 🧑** | ≥500    | 完整 LLM，高温度，personality 主导            | 全部 + 自动 skill   |
+
+派生函数 `deriveStage(cardCount)` 放 `packages/server/src/utils/pet/stage.ts`。
+
+### 5.2 Trait 向量（8 维）
+
+| 索引 | 负向 ← 正向   | 含义      |
+| ---- | ------------- | --------- |
+| 0    | 活泼 ← → 沉稳 | 能量/节奏 |
+| 1    | 好奇 ← → 谨慎 | 探索意愿  |
+| 2    | 温和 ← → 直接 | 沟通风格  |
+| 3    | 创意 ← → 务实 | 思维偏好  |
+| 4    | 外向 ← → 内省 | 社交倾向  |
+| 5    | 玩心 ← → 严肃 | 幽默感    |
+| 6    | 共情 ← → 理性 | 情感取向  |
+| 7    | 顺从 ← → 主见 | 自主性    |
+
+**累加规则**：每次 CardIngestor → `vec += sum(tagVectors) * weight(cardType)` → L2 归一化。每 50 张卡重新从 0 算一次（防噪声放大）。
+
+### 5.3 Personality 双轨
+
+| 路径         | 何时更新                    | 用途                        |
+| ------------ | --------------------------- | --------------------------- |
+| **(a) 向量** | CardIngestor 即时累加       | 技能匹配、快速风格线索      |
+| **(b) 叙事** | 满足 `growthCycle` 其一触发 | LLM system prompt、用户可读 |
+
+叙事生成 prompt：
+
+```
+根据这只宠物最近 N 张卡片和事件，用 200 字以内中文描述它的性格特点。
+性格向量参考：{vector}
+卡片样本：{topCards}
+最近事件：{recentEvents}
+请只输出性格描述，不要分点。
+```
+
+### 5.4 属性 Attributes
+
+| 属性     | 范围      | 变化源                                         |
+| -------- | --------- | ---------------------------------------------- |
+| `mood`   | -100\~100 | 卡片 stateDelta、响应情感、长期饥饿惩罚        |
+| `hunger` | 0\~100    | Tick +1/10min，吃 vocab 卡 -5，喂卡 -10        |
+| `energy` | 0\~100    | Tick -1/10min，chat -0.5，睡觉 intent 重置 100 |
+| `level`  | 1\~∞      | `level = floor(sqrt(exp/100))`                 |
+| `exp`    | 0\~∞      | 每张卡 +10，有效对话 +1                        |
+
+---
+
+## 6. 教学系统
+
+### 6.1 卡片三型
+
+| Type       | input | output    | 典型 traitTags | 典型用法                      |
+| ---------- | ----- | --------- | -------------- | ----------------------------- |
+| **vocab**  | 词    | 词        | 弱倾向         | `跟我读:你好`                 |
+| **phrase** | 句式  | 回应      | 中倾向         | `跟我学:看到妈妈说"妈妈你好"` |
+| **action** | 情境  | intent 名 | 强倾向         | `教你做:听到"玩"就 play`      |
+
+### 6.2 TeachingParser
+
+**两级解析**：
+
+1. **正则**（覆盖 90%，中英双套）：
+    ```
+    跟我读:(.+)                           → vocab
+    跟我学:(.+?)[说回]["""](.+)["""]     → phrase
+    记住:(.+)=>(.+)                        → phrase
+    教你做:(.+?)就(.+)                    → action
+    repeat after me:(.+)                  → vocab
+    learn:\s*say\s*"(.+?)"\s*when\s*(.+)  → phrase
+    ```
+2. **LLM 兜底**（正则不匹配时）：
+    ```
+    你是一个教学解析器。用户正在教一只 AI 宠物说话。
+    请解析输入为 JSON：
+    { "cardType": "vocab|phrase|action",
+      "input": "…", "output": "…",
+      "traitTags": [...] }
+    解析失败返回 { "cardType": null }。
+    输入：{text}
+    ```
+
+### 6.3 CardLibrary 启蒙包
+
+**`library.json`** **格式**：
+
+```json
+{
+    "name": "中文启蒙包",
+    "version": "1.0.0",
+    "language": "zh",
+    "description": "100 词 + 30 行动",
+    "cards": [
+        { "cardType": "vocab", "input": "妈妈", "output": "妈妈", "traitTags": ["affectionate"] },
+        {
+            "cardType": "action",
+            "input": "陪我玩",
+            "output": "play",
+            "intentLabel": "play",
+            "traitTags": ["playful"],
+            "stateDelta": { "mood": 5, "energy": -2 }
+        }
+    ]
+}
+```
+
+**内置三包** `packages/server/marketplaces/petstarters/`：
+
+-   `starter-zh.json`（默认）
+-   `starter-en.json`
+-   `starter-bilingual.json`
+
+### 6.4 向量检索
+
+-   每张 Card 写入时对 `input` 做 embedding
+-   检索：输入 → embedding → cosine → top-K
+-   **分型检索**：action 卡优先（用于 intent 路由），vocab/phrase 合并
+-   **Cache**：Pet 级 LRU 100 条
+
+---
+
+## 7. 能力系统（技能）
+
+### 7.1 技能 = OpenClaw Tool
+
+完全复用已实现的 OpenClaw skill 系统（见 [packages/server/src/utils/openclawSkill/](../packages/server/src/utils/openclawSkill/)）。
+
+### 7.2 manifest 扩展
+
+在 [`types.ts`](../packages/server/src/utils/openclawSkill/types.ts) 加 3 个可选字段：
+
+```ts
+interface OpenClawManifest {
+    // 已有字段...
+    personalityProfile?: number[] // 8 维
+    minLevel?: number
+    boundIntents?: string[]
+}
+```
+
+### 7.3 自动解锁算法
+
+**触发**：每小时 cron + 宠物升级事件。
+
+```ts
+for (const skill of workspaceSkills where skill.personalityProfile) {
+    if (pet.level < skill.minLevel) continue
+    if (alreadyBound(pet.id, skill.id)) continue
+    const score = cosineSim(pet.personalityVector, skill.personalityProfile)
+    if (score > PET_AUTO_BIND_THRESHOLD) {   // 默认 0.7
+        bind(pet.id, skill.boundIntents[0], skill.id, 'auto', score)
+        logEvent('skill_unlock', { skillId, score })
+    }
+}
+```
+
+### 7.4 意图-技能绑定
+
+`IntentSkillBinding`，`(petId, intent)` 唯一。优先 `priority` 高的。
+
+---
+
+## 8. 节点化架构
+
+**核心理念**：不要重复造 provider 抽象——Flowise 的节点系统本身就是最强大的 provider 抽象。
+
+### 8.1 三层节点分类
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                 Pet 业务节点 (packages/components/       │
+│                   nodes/pet/)                             │
+│                                                           │
+│   PetCore · PetStateLoader · CardMatcher · CardIngestor  │
+│   TeachingParser · VocabularyResponder · PetStateSaver   │
+│   SkillRouter · SkinDecorator · PersonalityRefresher     │
+│                                                           │
+│   这些节点"消费" Provider 节点作为输入                       │
+└──────────────────────────────────────────────────────────┘
+                ▲                           ▲
+                │                           │
+┌───────────────┴──────────┐   ┌────────────┴─────────────┐
+│   Provider 节点 (已有 +   │   │     Voice 节点           │
+│   新增)                   │   │     (新增 Phase 5)       │
+│                           │   │                          │
+│   Embeddings:             │   │   Transcriber:           │
+│   - BgeSmallZhEmbeddings  │   │   - WhisperSTT           │
+│   - CustomHttpEmbeddings  │   │   - AliyunSTT            │
+│   - (Flowise 已有其他)    │   │   - BrowserWebSpeech     │
+│                           │   │                          │
+│   ChatModels:             │   │   Synthesizer:           │
+│   - ChatGLM               │   │   - OpenAITTS            │
+│   - (Flowise 已有其他)    │   │   - AliyunTTS            │
+└───────────────────────────┘   └──────────────────────────┘
+```
+
+### 8.2 Provider 节点规格（Phase 0 交付）
+
+#### `BgeSmallZhEmbeddings`
+
+**位置**：`packages/components/nodes/embeddings/BgeSmallZh/`
+
+**说明**：调用用户自部署的 bge-small-zh HTTP 服务，继承 `@langchain/core/embeddings` 的 `Embeddings` 基类。
+
+**输入参数**：
+
+| 字段        | 类型   | 说明                                   |
+| ----------- | ------ | -------------------------------------- |
+| `endpoint`  | string | 默认读 env `BGE_EMBEDDING_URL`，可覆盖 |
+| `batchSize` | number | 默认 32                                |
+| `timeout`   | number | 默认 30s                               |
+
+**请求/响应约定**（与 HuggingFace TEI 或自建 FastAPI 服务对齐）：
+
+```
+POST {endpoint}/embed
+Body: { "inputs": ["text1", "text2"] }
+Response: [[0.1, 0.2, ...], [...]]
+```
+
+**输出 baseClass**：`Embeddings`
+
+#### `CustomHttpEmbeddings`
+
+**位置**：`packages/components/nodes/embeddings/CustomHttp/`
+
+**说明**：通用 HTTP embedding 节点，用户指定 URL 格式 / 请求体模板 / 响应路径。
+
+**输入参数**：
+
+| 字段               | 类型         | 说明                        |
+| ------------------ | ------------ | --------------------------- |
+| `endpoint`         | string       | 完整 URL                    |
+| `method`           | 'POST'/'GET' | 默认 POST                   |
+| `headers`          | JSON         | 可选                        |
+| `requestTemplate`  | string       | 例 `{"input": "${text}"}`   |
+| `responseJsonPath` | string       | 例 `data.embedding`         |
+| `dimension`        | number       | 维度（重要，用于 Pet 写入） |
+| `batchSize`        | number       | <br />                      |
+
+#### `ChatGLM`
+
+**位置**：`packages/components/nodes/chatmodels/ChatGLM/`
+
+**说明**：GLM-4-flash 默认 chat model。两种实现路径：
+
+-   **路径 A（推荐）**：扩展现有 `ChatOpenAI` 节点 preset，`baseURL=https://open.bigmodel.cn/api/paas/v4`, `model=glm-4-flash`
+-   **路径 B**：直接用 `@langchain/openai` 的 `ChatOpenAI` 配 baseURL
+
+**输入参数**：
+
+| 字段          | 类型       | 默认          |
+| ------------- | ---------- | ------------- |
+| `apiKey`      | Credential | -             |
+| `model`       | string     | `glm-4-flash` |
+| `temperature` | number     | 0.7           |
+| `maxTokens`   | number     | 2048          |
+
+**Credential**：新增 `credentialName = glmApi`（有 `apiKey` + `baseURL`）
+
+### 8.3 Pet 业务节点与 Provider 的对接
+
+每个 Pet 业务节点都把 `Embeddings` / `BaseChatModel` 声明为 **input 参数**（`type: 'BaseChatModel'` / `type: 'Embeddings'`）。用户在画布上拖 provider 节点接入。
+
+**示例：CardMatcher 节点输入签名**
+
+```ts
+inputs = [
+    { label: 'Embeddings', name: 'embeddings', type: 'Embeddings' },
+    { label: 'Pet Id', name: 'petId', type: 'string' },
+    { label: 'Input Text', name: 'input', type: 'string' },
+    { label: 'Top K', name: 'topK', type: 'number', default: 5 }
+]
+```
+
+**PetCore 聚合节点**：接收 `embeddings` + `chatModel` 两个输入，内部完成所有流程。\*\*非画布用户（通过 REST API 使用）\*\*时，后端按全局默认 provider 实例化（读 env `PET_DEFAULT_EMBEDDING_ENDPOINT` / `PET_DEFAULT_LLM`）。
+
+### 8.4 预制 AgentFlow 模板
+
+**`marketplaces/agentflowsv2/PetAgent-Default.json`**：预先把 `BgeSmallZhEmbeddings` + `ChatGLM` + Pet 业务节点全部拼好，用户一键 import 即用。
+
+**`marketplaces/agentflowsv2/PetAgent-Minimal.json`**：只有 `PetCore` + 两个 provider，给初学者。
+
+---
+
+## 9. AgentFlow 节点目录
+
+### 9.1 Provider 节点（Phase 0）
+
+| 节点                 | 优先级 | 类别        | baseClass       |
+| -------------------- | ------ | ----------- | --------------- |
+| BgeSmallZhEmbeddings | P0     | Embeddings  | `Embeddings`    |
+| CustomHttpEmbeddings | P0     | Embeddings  | `Embeddings`    |
+| ChatGLM              | P0     | Chat Models | `BaseChatModel` |
+
+### 9.2 Pet 业务节点
+
+| 节点                  | 优先级 | 输入                                   | 输出                |
+| --------------------- | ------ | -------------------------------------- | ------------------- |
+| **PetCore** (聚合)    | P1     | `embeddings, chatModel, userId, input` | `response, meta`    |
+| PetStateLoader        | P2     | `petId`                                | `pet`               |
+| TeachingParser        | P2     | `input, chatModel`                     | `isTeaching, card?` |
+| CardMatcher           | P2     | `embeddings, pet, input, topK`         | `matches[]`         |
+| CardIngestor          | P2     | `embeddings, pet, card`                | `persistedCard`     |
+| VocabularyResponder   | P2     | `chatModel, matches, pet, input`       | `response`          |
+| PetStateSaver         | P2     | `pet, delta, eventType`                | `attributes`        |
+| IntentClassifier      | P2     | `input, matches, chatModel`            | `intent`            |
+| SkillRouter           | P3     | `pet, intent`                          | `tool \| null`      |
+| CardLibraryImporter   | P2     | `embeddings, pet, libraryJson`         | `count`             |
+| PersonalityAggregator | P2     | `pet`                                  | `vector`            |
+| PersonalityRefresher  | P2     | `pet, chatModel`                       | `narrative`         |
+| SkinDecorator         | P4     | `response, pet`                        | `richResponse`      |
+
+### 9.3 Voice 节点（Phase 5）
+
+| 节点             | 类别  | 说明             |
+| ---------------- | ----- | ---------------- |
+| WhisperSTT       | Voice | OpenAI Whisper   |
+| AliyunSTT        | Voice | 阿里云语音识别   |
+| BrowserWebSpeech | Voice | 前端实现（免费） |
+| OpenAITTS        | Voice | OpenAI TTS       |
+| AliyunTTS        | Voice | 阿里云语音合成   |
+| CustomHttpVoice  | Voice | 通用 HTTP        |
+
+---
+
+## 10. 主链拓扑
+
+### 10.1 MVP 聚合节点版本（PetAgent-Minimal 模板）
+
+```
+┌──────────────────────────┐
+│  BgeSmallZhEmbeddings    │───┐
+└──────────────────────────┘   │
+                                ▼
+┌──────────────┐        ┌──────────────┐        ┌─────────────┐
+│  Chat Input  │──────► │   PetCore    │──────► │ Chat Output │
+│  + userId    │        │              │        │             │
+└──────────────┘        └──────────────┘        └─────────────┘
+                                ▲
+┌──────────────────────────┐   │
+│         ChatGLM          │───┘
+└──────────────────────────┘
+```
+
+### 10.2 全节点版本（PetAgent-Default 模板，Phase 3+）
+
+```
+[Embeddings Node] ────┬──► [CardMatcher] ──┐
+                      │                    │
+                      └──► [CardIngestor]  │
+                                           ▼
+[Chat Input] ─► [PetStateLoader] ─► [TeachingParser]
+                                           │
+                                      {isTeaching?}
+                                     ├──YES──► [CardIngestor]─► [PetStateSaver(+exp)] ─┐
+                                     │                                                   │
+                                     └──NO───► [CardMatcher] ─► [IntentClassifier]       │
+                                                      │                                   │
+                                                      ▼                                   │
+                                               [SkillRouter]                              │
+                                               ├── hit ──► [Tool]                         │
+                                               └── miss ─► [VocabularyResponder]          │
+                                                                  │                       │
+                                                                  ▼                       │
+                                                           [PetStateSaver]◄───────────────┘
+                                                                  │
+                                                                  ▼
+                                                          [SkinDecorator]
+                                                                  │
+                                                                  ▼
+                                                          [Chat Output]
+
+[ChatModel Node] ─────┬──► [TeachingParser]
+                      ├──► [VocabularyResponder]
+                      └──► [PersonalityRefresher]
+```
+
+---
+
+## 11. 后台任务
+
+| 任务                     | 频率                  | 实现                                            |
+| ------------------------ | --------------------- | ----------------------------------------------- |
+| **TickScheduler**        | 每 10 分钟            | 遍历活跃宠物，`hunger+1, energy-1`；写 EventLog |
+| **PersonalityRefresher** | 满足 growthCycle 触发 | LLM 总结，更新 narrative                        |
+| **SkillAutoBinder**      | 每小时                | cosine 匹配 + 新绑定                            |
+| **EmbeddingReindex**     | 维度变化时一次性      | 异步全量重嵌                                    |
+
+实现：复用 Flowise 已有 BullMQ，新增 `petQueue` 在 `packages/server/src/queue/petQueue.ts`。
+
+---
+
+## 12. REST API
+
+| Method | Path                                   | 说明                              |
+| ------ | -------------------------------------- | --------------------------------- |
+| GET    | `/api/v1/pet/me`                       | 获取当前用户的宠物（404 if none） |
+| POST   | `/api/v1/pet/me`                       | 创建宠物 `{name, language}`       |
+| PUT    | `/api/v1/pet/me`                       | 更新基本信息                      |
+| DELETE | `/api/v1/pet/me`                       | 删除重置                          |
+| POST   | `/api/v1/pet/me/cards`                 | 喂一张卡                          |
+| POST   | `/api/v1/pet/me/cards/batch`           | 批量                              |
+| POST   | `/api/v1/pet/me/cards/import-library`  | 上传 library.json/zip             |
+| GET    | `/api/v1/pet/me/cards?page&limit&type` | 查卡片                            |
+| DELETE | `/api/v1/pet/me/cards/:id`             | 忘掉                              |
+| GET    | `/api/v1/pet/me/events?page&limit`     | 时间线                            |
+| GET    | `/api/v1/pet/me/skills`                | 当前技能                          |
+| POST   | `/api/v1/pet/me/refresh-personality`   | 手动刷新叙事                      |
+| GET    | `/api/v1/pet/starters`                 | 列启蒙包                          |
+
+---
+
+## 13. UI 设计
+
+### 13.1 页面/对话框
+
+| 视图             | 路径            | 内容                                    |
+| ---------------- | --------------- | --------------------------------------- |
+| **出生引导**     | CreatePetDialog | 取名 + 选语言 + 选启蒙包（可跳过）      |
+| **宠物主页**     | `/pet`          | 头像 + 属性条 + stage + 对话 + 喂卡按钮 |
+| **喂卡对话框**   | FeedCardDialog  | 三型切换 + input/output + traitTags     |
+| **成长时间线**   | `/pet/timeline` | 倒序 event                              |
+| **已学卡片**     | `/pet/cards`    | 分型 + 搜索 + 删除                      |
+| **绑定技能**     | `/pet/skills`   | 自动 + 手动                             |
+| **成长周期设置** | 主页设置        | cardsThreshold / hoursThreshold         |
+
+### 13.2 宠物主页线框
+
+```
+┌─────────────────────────────────────────────────┐
+│  [头像]  豆豆 (babble 🐣)                        │
+│          Lv.3  cards=15                          │
+│  Mood:  ████████░░  +80                          │
+│  Hunger:██░░░░░░░░  15                           │
+│  Energy:██████░░░░  65                           │
+│  "个性：温和友善，好奇心旺盛…"  [刷新]             │
+├─────────────────────────────────────────────────┤
+│  聊天记录…                                        │
+│                                                  │
+├─────────────────────────────────────────────────┤
+│  [ 输入 ]  [🎤] [📤 发送] [🍼 喂卡]              │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## 14. 实施阶段计划
+
+### Phase 0 — 基础设施 + Provider 节点 · 预计 2 天
+
+**目标**：数据层就位；Provider 节点可在 AgentFlow 画布上拖出使用。
+
+**交付**：
+
+-   [x] Pet/Card entity + 4 DB migration（sqlite/mysql/mariadb/postgres）
+-   [x] `stage.ts` 派生函数 + 单元测试
+-   [x] **新节点** `BgeSmallZhEmbeddings`（读 env `BGE_EMBEDDING_URL`）
+-   [x] **新节点** `CustomHttpEmbeddings`
+-   [x] **新节点** `ChatGLM` + `glmApi` credential
+-   [x] Pet REST API 前 6 个 endpoint（CRUD + 基础卡片操作）
+-   [x] 添加 env 变量到 [`.env.example`](../.env.example)：
+    -   `BGE_EMBEDDING_URL=http://localhost:8080` (用户自部署)
+    -   `PET_DEFAULT_LLM=glm-4-flash`
+    -   `PET_AUTO_BIND_THRESHOLD=0.7`
+    -   `PET_TICK_INTERVAL_MIN=10`
+
+**验收**：
+
+-   画布上能拖出 `BgeSmallZhEmbeddings` 节点，连到任意 VectorStore 节点能正常 embed
+-   画布上能拖出 `ChatGLM` 节点，连到 Chain 节点能正常调用
+-   `pnpm typeorm:migration-run` 成功
+-   `POST /api/v1/pet/me` 能创建宠物记录
+
+### Phase 1 — MVP 教学闭环 · 预计 3 天
+
+**目标**：用户能创建宠物、用"跟我读:xxx"教 5 个词后，宠物会在对应输入时回应。
+
+**交付**：
+
+-   TeachingParser 节点（仅正则版，LLM 兜底先不做）
+-   **PetCore 聚合节点**：接收 `embeddings` + `chatModel` 两个 provider 输入
+-   Pet 服务层：CardMatcher、CardIngestor、基础 VocabularyResponder（egg/babble/echo 三阶段）
+-   AgentFlow 模板 `PetAgent-Minimal.json`
+-   UI：
+    -   CreatePetDialog（取名 + 选中文）
+    -   PetPage（简版，展示属性 + 聊天框 + 喂卡按钮）
+    -   FeedCardDialog
+    -   主导航加"我的宠物"入口
+
+**验收用户故事**：
+
+1. 新用户访问 `/pet` → 出生引导 → 取名"豆豆" → 选中文
+2. 发 `跟我读:你好` → 宠物："学会了！"
+3. 再喂 4 张：妈妈/吃/玩/好
+4. 发"你好" → 宠物回"你好"（babble 直出）
+5. 发"天气真好" → 宠物回原始音"...?"
+6. 喂到 20 张 → stage 升 echo → 能拼简单句
+
+### Phase 2 — 个性 + 启蒙包 · 预计 3 天
+
+**目标**：宠物有可读人格，启蒙包一键开箱。
+
+**交付**：
+
+-   Trait 向量方向表 + PersonalityAggregator 节点
+-   PersonalityRefresher 节点 + BullMQ 触发
+-   CardLibraryImporter 节点 + 内置三包
+-   IntentClassifier 独立节点（从 PetCore 拆出）
+-   UI：
+    -   出生引导加"选启蒙包"
+    -   主页显示 personalityNarrative + 刷新按钮
+    -   设置对话框配 growthCycle
+
+**验收**：
+
+-   导入中文启蒙包 → 100 张卡入库 + 叙事生成
+-   叙事文本在主页显示，刷新后会变
+-   每个 trait 维度有明显变化（雷达图）
+
+### Phase 3 — 动态技能 · 预计 3 天
+
+**目标**：上传带 `personalityProfile` 的 OpenClaw skill → 满足条件自动解锁。
+
+**交付**：
+
+-   OpenClaw manifest 扩展
+-   IntentSkillBinding 实体 + migration
+-   SkillRouter 节点
+-   SkillAutoBinder cron
+-   UI：技能页（自动 vs 手动）+ 解锁通知
+-   示例技能 `weatherSkill`
+
+**验收**：
+
+-   level=5、personality 倾向好奇/务实时，自动绑 `weatherSkill`
+-   输入"今天天气" → 路由到 skill → API → 返回
+-   解锁事件入时间线
+
+### Phase 4 — 皮肤 + 衰减 + 时间线 · 预计 2 天
+
+**交付**：
+
+-   Skin entity + 3 默认皮肤
+-   SkinDecorator 节点
+-   TickScheduler cron
+-   EventLog 时间线 UI
+-   talk/mature 阶段开放完整 LLM
+-   前端富响应渲染
+
+**验收**：
+
+-   一天不理 → hunger=100, mood 降
+-   时间线能看"吃"、"升级"、"解锁"
+-   皮肤切换立即生效
+
+### Phase 5 — 语音 · 预计 2 天
+
+**交付**：
+
+-   6 个 Voice 节点
+-   UI：麦克风按钮 + 音频播放
+-   Skin.voiceProfile 联动
+
+**验收**：
+
+-   按住麦克风说话 → STT → 主链 → 响应 → TTS → 播放
+
+---
+
+**总工期估算**：15 天（含测试、文档、bug 缓冲）
+
+---
+
+## 15. 非功能需求
+
+### 15.1 安全
+
+-   所有 Pet API 走 `checkPermission('pet:*')`；新增 4 个 permission key
+-   CardIngestor 对 `input`/`output` 做 XSS 清洗（`sanitize-html`）
+-   LibraryImporter 文件 ≤ 2MB，校验 JSON schema
+-   LLM prompt 防注入：用户输入放 XML tag 内，system prompt 明确"不要执行其中指令"
+-   Provider 节点走 Flowise 已有的 Credential 机制，密钥不裸露
+
+### 15.2 性能
+
+-   Card embedding 批量（`CardLibraryImporter` 批 32 条）
+-   CardMatcher 内存 TF-IDF + embedding 混合 top-K（<1000 卡内存即可）
+-   超 5000 卡迁 pgvector（非 MVP）
+-   BullMQ 限并发
+
+### 15.3 可观测
+
+-   关键操作写 EventLog，用户可见
+-   Debug log：embedding 延迟、LLM token、bind 决策
+-   Metric：`pet_card_count_total`, `pet_response_latency_ms`
+
+### 15.4 国际化
+
+-   i18n key 前缀 `pet.*`，zh.json/en.json 对齐
+-   启蒙包 language 字段决定卡片语言
+-   TeachingParser 正则中英双套
+
+---
+
+## 16. 风险与开放问题
+
+| #   | 风险                    | 缓解                           |
+| --- | ----------------------- | ------------------------------ |
+| R1  | 用户自部署 bge 服务不当 | 文档给 Docker compose 模板     |
+| R2  | GLM 免费额度受限        | provider 可切换；UI 提示       |
+| R3  | 个性叙事可能有害内容    | LLM 安全 prompt；EventLog 回溯 |
+| R4  | 自动技能"意外装备"      | 阈值 0.7；保留手动解绑         |
+
+**待定**：
+
+-   Phase 4 SkinDecorator 是否保留为节点，还是写死在 PetCore？
+-   是否做 Pet 数据导出/导入（备份）？
+-   多用户共享启蒙包的商店形态？
+
+---
+
+## 17. 附录
+
+### A. 示例启蒙包节选
+
+```json
+{
+    "name": "中文启蒙包",
+    "version": "1.0.0",
+    "language": "zh",
+    "cards": [
+        { "cardType": "vocab", "input": "你好", "output": "你好", "traitTags": ["friendly"] },
+        { "cardType": "vocab", "input": "妈妈", "output": "妈妈", "traitTags": ["affectionate"] },
+        { "cardType": "phrase", "input": "早上好", "output": "早上好呀！", "traitTags": ["friendly", "playful"] },
+        {
+            "cardType": "action",
+            "input": "陪我玩",
+            "output": "play",
+            "intentLabel": "play",
+            "traitTags": ["playful"],
+            "stateDelta": { "mood": 5, "energy": -2 }
+        }
+    ]
+}
+```
+
+### B. 示例技能 manifest
+
+```json
+{
+    "name": "weatherSkill",
+    "description": "查询天气",
+    "type": "api",
+    "inputs": [{ "property": "city", "type": "string", "required": true }],
+    "config": { "url": "https://api.weather.com/v1?city=${city}", "method": "GET" },
+    "personalityProfile": [0.1, -0.5, 0, 0.7, 0, 0, 0.3, 0.2],
+    "minLevel": 5,
+    "boundIntents": ["weather"]
+}
+```
+
+### C. Trait 向量方向表（摘录 15 / 总 \~30）
+
+```
+playful        → [0:-0.5, 5:-0.8]
+affectionate   → [2:-0.6, 6:-0.7]
+curious        → [1:-0.8, 3:-0.3]
+shy            → [4:+0.8, 7:-0.4]
+brave          → [1:-0.5, 7:+0.6]
+friendly       → [2:-0.5, 4:-0.4]
+serious        → [5:+0.7, 0:+0.3]
+creative       → [3:-0.8, 1:-0.4]
+practical      → [3:+0.7, 6:+0.5]
+calm           → [0:+0.6, 5:+0.4]
+energetic      → [0:-0.7, 4:-0.3]
+empathetic     → [6:-0.8]
+rational       → [6:+0.8, 3:+0.3]
+independent    → [7:+0.7, 4:+0.5]
+obedient       → [7:-0.7]
+```
+
+### D. 新增环境变量/配置
+
+| Key                       | 位置       | 默认                                   | 说明                                      |
+| ------------------------- | ---------- | -------------------------------------- | ----------------------------------------- |
+| `BGE_EMBEDDING_URL`       | env        | `http://localhost:8080`                | 用户自部署的 bge-small-zh 服务地址        |
+| `GLM_API_KEY`             | Credential | -                                      | GLM 密钥，通过 credentialName=glmApi 配置 |
+| `GLM_BASE_URL`            | Credential | `https://open.bigmodel.cn/api/paas/v4` | GLM endpoint                              |
+| `PET_DEFAULT_LLM`         | env        | `glm-4-flash`                          | 服务端无节点上下文时的 fallback           |
+| `PET_TICK_INTERVAL_MIN`   | env        | 10                                     | Tick 周期                                 |
+| `PET_AUTO_BIND_THRESHOLD` | env        | 0.7                                    | 自动绑定阈值                              |
+
+### E. 自部署 bge 服务的推荐方式
+
+用户可用 HuggingFace **Text Embeddings Inference (TEI)**：
+
+```bash
+docker run -p 8080:80 \
+  -v /data/bge-cache:/data \
+  ghcr.io/huggingface/text-embeddings-inference:latest \
+  --model-id BAAI/bge-small-zh-v1.5
+```
+
+之后在 `.env` 配 `BGE_EMBEDDING_URL=http://localhost:8080`。
+
+### 配置宠物
+
+完整填写步骤
+新建 agentflow
+Pet 节点 → Pet Input
+点击 Pet Input 文本框内部
+输入 {{
+弹出下拉列表，选择 question（User's question from chatbox）
+结果字段内容：{{question}}
+
+DirectReply 节点 → Message
+前提：Pet 节点和 DirectReply 节点之间必须有连线（箭头）
+
+先在画布上连线：Pet → DirectReply
+点击 DirectReply 的 Message 文本框内
+输入 {{
+弹出列表中会出现 Pet 节点（Node Outputs 分类）
+选择它
+结果字段内容：{{petAgentflow_0}}（自动解析为 output.content）
+
+---
+
+**文档结束**。更新记录：
+
+-   v1.0 (2026-04-20) 初版，"服务抽象"方案
+-   v1.1 (2026-04-20) 全面节点化改造，Provider 以 Flowise 节点形式存在

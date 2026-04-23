@@ -139,6 +139,14 @@ export class Permissions {
         const loginActivityCategory = new PermissionCategory('loginActivity')
         loginActivityCategory.addPermission(new Permission('loginActivity:view', 'View Login Activity', false, true, false))
         this.categories.push(loginActivityCategory)
+
+        const petCategory = new PermissionCategory('pet')
+        petCategory.addPermission(new Permission('pet:view', 'View', true, true, true))
+        petCategory.addPermission(new Permission('pet:create', 'Create', true, true, true))
+        petCategory.addPermission(new Permission('pet:update', 'Update', true, true, true))
+        petCategory.addPermission(new Permission('pet:delete', 'Delete', true, true, true))
+        petCategory.addPermission(new Permission('pet:teach', 'Teach (feed cards)', true, true, true))
+        this.categories.push(petCategory)
     }
 
     public toJSON(): { [key: string]: { key: string; value: string }[] } {

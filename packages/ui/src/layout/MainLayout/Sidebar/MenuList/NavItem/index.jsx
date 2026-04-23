@@ -44,7 +44,8 @@ const NavItem = ({ item, level, navType, onClick, onUploadFile }) => {
         workspaces: 'menu.workspaces',
         'login-activity': 'menu.loginActivity',
         logs: 'menu.logs',
-        account: 'menu.accountSettings'
+        account: 'menu.accountSettings',
+        pet: 'menu.pet'
     }
 
     const translatedTitle = menuTitleMap[item.id] ? t(menuTitleMap[item.id]) : item.title

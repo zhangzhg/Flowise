@@ -169,6 +169,53 @@ export interface IUpsertHistory {
     date: Date
 }
 
+export interface IPetAttributes {
+    mood: number
+    hunger: number
+    energy: number
+    level: number
+    exp: number
+    cardCount: number
+}
+
+export interface IPetGrowthCycle {
+    cardsThreshold: number
+    hoursThreshold: number
+}
+
+export interface IPet {
+    id: string
+    userId: string
+    workspaceId: string
+    name: string
+    language: string
+    birthDate: Date
+    skinId?: string
+    attributes: string
+    personalityVector: string
+    personalityNarrative?: string
+    personalityNarrativeAt?: Date
+    embeddingDimension: number
+    growthCycle: string
+    createdDate: Date
+    updatedDate: Date
+}
+
+export interface ICard {
+    id: string
+    petId: string
+    cardType: string
+    input: string
+    output: string
+    intentLabel?: string
+    traitTags?: string
+    stateDelta?: string
+    embedding: string
+    source: string
+    libraryName?: string
+    createdDate: Date
+}
+
 export interface IExecution {
     id: string
     executionData: string

@@ -29,7 +29,7 @@ class ChatGLM_ChatModels implements INode {
             label: 'Connect Credential',
             name: 'credential',
             type: 'credential',
-            credentialNames: ['zhipuAIApi']
+            credentialNames: ['glmApi', 'zhipuAIApi']
         }
         this.inputs = [
             {
@@ -144,7 +144,11 @@ class ChatGLM_ChatModels implements INode {
             nodeData.credential = nodeData.inputs?.credentialId
         }
         const credentialData = await getCredentialData(nodeData.credential ?? '', options)
+        // Support both `glmApi` (new, has optional baseURL) and `zhipuAIApi` (legacy)
+        const glmApiKey = getCredentialParam('glmApiKey', credentialData, nodeData)
         const zhipuAIApiKey = getCredentialParam('zhipuAIApiKey', credentialData, nodeData)
+        const apiKey = glmApiKey || zhipuAIApiKey
+        const customBaseUrl = getCredentialParam('glmBaseUrl', credentialData, nodeData)
 
         const cache = nodeData.inputs?.cache as BaseCache
 
@@ -152,11 +156,11 @@ class ChatGLM_ChatModels implements INode {
             temperature: parseFloat(temperature),
             model: modelName,
             modelName,
-            apiKey: zhipuAIApiKey,
-            openAIApiKey: zhipuAIApiKey,
+            apiKey,
+            openAIApiKey: apiKey,
             streaming: streaming ?? true,
             configuration: {
-                baseURL: 'https://open.bigmodel.cn/api/paas/v4'
+                baseURL: customBaseUrl || 'https://open.bigmodel.cn/api/paas/v4'
             }
         }
 

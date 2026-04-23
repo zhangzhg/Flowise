@@ -17,6 +17,8 @@ import { Evaluator } from './Evaluator'
 import { ApiKey } from './ApiKey'
 import { CustomTemplate } from './CustomTemplate'
 import { Execution } from './Execution'
+import { Pet } from './Pet'
+import { Card } from './Card'
 import { LoginActivity, WorkspaceShared, WorkspaceUsers } from '../../enterprise/database/entities/EnterpriseEntities'
 import { User } from '../../enterprise/database/entities/user.entity'
 import { Organization } from '../../enterprise/database/entities/organization.entity'
@@ -51,6 +53,8 @@ export const entities = {
     WorkspaceShared,
     CustomTemplate,
     Execution,
+    Pet,
+    Card,
     Organization,
     Role,
     OrganizationUser,

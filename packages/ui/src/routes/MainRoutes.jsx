@@ -61,6 +61,9 @@ const Logs = Loadable(lazy(() => import('@/views/serverlogs')))
 // executions routing
 const Executions = Loadable(lazy(() => import('@/views/agentexecutions')))
 
+// pet routing
+const PetPage = Loadable(lazy(() => import('@/views/pet')))
+
 // enterprise features
 const UsersPage = Loadable(lazy(() => import('@/views/users')))
 const RolesPage = Loadable(lazy(() => import('@/views/roles')))
@@ -343,6 +346,14 @@ const MainRoutes = {
         {
             path: '/sso-success',
             element: <SSOSuccess />
+        },
+        {
+            path: '/pet',
+            element: (
+                <RequireAuth permission={'pet:view'}>
+                    <PetPage />
+                </RequireAuth>
+            )
         }
     ]
 }
