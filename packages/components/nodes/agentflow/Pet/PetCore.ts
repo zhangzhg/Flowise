@@ -30,6 +30,7 @@ class Pet_Agentflow implements INode {
         this.version = 1.0
         this.type = 'Pet'
         this.category = 'Agent Flows'
+        this.icon = 'Pet.svg'
         this.description = 'AI pet that grows and learns from user interactions'
         this.color = '#FFD700'
         this.baseClasses = [this.type]
