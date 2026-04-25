@@ -20,6 +20,7 @@ import { Execution } from './Execution'
 import { Pet } from './Pet'
 import { Card } from './Card'
 import { FlowSchedule } from './FlowSchedule'
+import { IntentSkillBinding } from './IntentSkillBinding'
 import { LoginActivity, WorkspaceShared, WorkspaceUsers } from '../../enterprise/database/entities/EnterpriseEntities'
 import { User } from '../../enterprise/database/entities/user.entity'
 import { Organization } from '../../enterprise/database/entities/organization.entity'
@@ -57,6 +58,7 @@ export const entities = {
     Pet,
     Card,
     FlowSchedule,
+    IntentSkillBinding,
     Organization,
     Role,
     OrganizationUser,

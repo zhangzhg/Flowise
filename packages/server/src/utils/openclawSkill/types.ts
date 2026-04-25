@@ -36,6 +36,10 @@ export interface OpenClawManifest {
     entry?: string
     entryContent?: string
     config?: OpenClawApiConfig | OpenClawLlmConfig | Record<string, unknown>
+    // Phase 3: pet dynamic skill binding
+    personalityProfile?: number[] // personality vector to match against pet's vector
+    minLevel?: number // minimum pet level required to unlock
+    boundIntents?: string[] // intent labels this skill handles (e.g. ["weather", "forecast"])
 }
 
 export interface ParsedSkill {

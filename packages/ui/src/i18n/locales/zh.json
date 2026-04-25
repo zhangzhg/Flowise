@@ -190,6 +190,19 @@
         "flowLinked": "AgentFlow 关联成功",
         "noFlowLinked": "尚未关联 AgentFlow，请先点击「关联 AgentFlow」"
     },
+    "petSkills": {
+        "title": "宠物技能",
+        "addBinding": "添加技能绑定",
+        "intent": "意图",
+        "skillTool": "技能工具",
+        "source": "来源",
+        "priority": "优先级",
+        "selectTool": "选择工具...",
+        "autoUnlocked": "自动解锁技能",
+        "manualBindings": "手动绑定",
+        "noManualBindings": "暂无手动技能绑定，点击「添加技能绑定」来关联技能。",
+        "autoScore": "匹配分数"
+    },
     "tools": {
         "title": "工具",
         "description": "智能体可使用的外部函数或 API",

@@ -1,0 +1,27 @@
+{
+    "name": "weatherSkill",
+    "version": "1.0.0",
+    "description": "Query current weather and forecast for a given city using a public weather API.",
+    "type": "api",
+    "inputs": [
+        {
+            "property": "city",
+            "type": "string",
+            "description": "City name to query weather for",
+            "required": true
+        },
+        {
+            "property": "unit",
+            "type": "string",
+            "description": "Temperature unit: 'celsius' or 'fahrenheit'",
+            "required": false
+        }
+    ],
+    "config": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true",
+        "method": "GET"
+    },
+    "personalityProfile": [0.1, -0.5, 0.0, 0.7, 0.0, 0.0, 0.3, 0.2],
+    "minLevel": 5,
+    "boundIntents": ["weather", "forecast", "temperature"]
+}

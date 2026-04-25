@@ -179,31 +179,38 @@ const updatePet = async (userId: string, body: UpdatePetInput) => {
         const pet = await repo.findOneBy({ userId })
         if (!pet) throw new InternalFlowiseError(StatusCodes.NOT_FOUND, 'Pet not found')
 
+        // Build explicit partial update to avoid TypeORM save() skipping nullable columns
+        const updateFields: Record<string, unknown> = {}
+
         if (body.name !== undefined) {
             if (typeof body.name !== 'string' || !body.name.trim()) {
                 throw new InternalFlowiseError(StatusCodes.BAD_REQUEST, 'Invalid name')
             }
-            pet.name = body.name.trim().slice(0, 64)
+            updateFields.name = body.name.trim().slice(0, 64)
         }
         if (body.language !== undefined) {
             if (!ALLOWED_LANGUAGES.has(body.language)) {
                 throw new InternalFlowiseError(StatusCodes.BAD_REQUEST, 'Invalid language')
             }
-            pet.language = body.language
+            updateFields.language = body.language
         }
         if (body.skinId !== undefined) {
-            pet.skinId = body.skinId || undefined
+            updateFields.skinId = body.skinId || null
         }
         if (body.petFlowId !== undefined) {
-            pet.petFlowId = body.petFlowId || undefined
+            updateFields.petFlowId = body.petFlowId || null
         }
         if (body.growthCycle !== undefined) {
             const merged = { ...parseGrowthCycle(pet.growthCycle), ...body.growthCycle }
-            pet.growthCycle = JSON.stringify(merged)
+            updateFields.growthCycle = JSON.stringify(merged)
         }
 
-        const saved = await repo.save(pet)
-        return presentPet(saved)
+        if (Object.keys(updateFields).length > 0) {
+            await repo.update({ userId }, updateFields as any)
+        }
+
+        const updated = await repo.findOneBy({ userId })
+        return presentPet(updated!)
     } catch (error) {
         if (error instanceof InternalFlowiseError) throw error
         throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: petsService.updatePet - ${getErrorMessage(error)}`)

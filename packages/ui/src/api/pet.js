@@ -12,11 +12,20 @@ const feedCard = (body) => client.post('/pet/me/cards', body)
 
 const listCards = (params) => client.get('/pet/me/cards', { params })
 
+const getSkillBindings = (petId) => client.get(`/pets/${petId}/skill-bindings`)
+
+const createSkillBinding = (petId, body) => client.post(`/pets/${petId}/skill-bindings`, body)
+
+const deleteSkillBinding = (petId, bindingId) => client.delete(`/pets/${petId}/skill-bindings/${bindingId}`)
+
 export default {
     getMyPet,
     createPet,
     updatePet,
     deletePet,
     feedCard,
-    listCards
+    listCards,
+    getSkillBindings,
+    createSkillBinding,
+    deleteSkillBinding
 }

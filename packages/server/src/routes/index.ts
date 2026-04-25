@@ -59,6 +59,7 @@ import mcpServerRouter from './mcp-server'
 import mcpEndpointRouter from './mcp-endpoint'
 import petRouter from './pet'
 import schedulesRouter from './schedules'
+import skillBindingsRouter from './skillBindings'
 
 import authRouter from '../enterprise/routes/auth'
 import auditRouter from '../enterprise/routes/audit'
@@ -131,6 +132,7 @@ router.use('/text-to-speech', textToSpeechRouter)
 router.use('/mcp-server', mcpServerRouter)
 router.use('/mcp', mcpEndpointRouter)
 router.use('/pet', petRouter)
+router.use('/pets', skillBindingsRouter)
 router.use('/schedules', schedulesRouter)
 
 router.use('/auth', authRouter)

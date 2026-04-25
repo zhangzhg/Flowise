@@ -1,6 +1,6 @@
 # Pet 节点使用指南
 
-**版本** v1.0 · **最后更新** 2026-04-21
+**版本** v1.1 · **最后更新** 2026-04-23
 
 > 本文档介绍如何在 Flowise AgentFlow 中使用 Pet 节点，构建一只会成长、会学习的 AI 宠物。
 
@@ -14,6 +14,11 @@
 -   [4. 成长阶段](#4-成长阶段)
 -   [5. 个性系统](#5-个性系统)
 -   [6. 技能系统](#6-技能系统)
+    -   [6.1 技能解锁](#61-技能解锁)
+    -   [6.2 意图-技能绑定](#62-意图-技能绑定)
+    -   [6.3 SkillRouter 节点](#63-skillrouter-节点)
+    -   [6.4 自动绑定机制](#64-自动绑定机制)
+    -   [6.5 创建技能](#65-创建技能)
 -   [7. API 接口](#7-api-接口)
 -   [8. 常见问题](#8-常见问题)
 
@@ -231,31 +236,189 @@ creative     → 创意
 -   **手动绑定**：在宠物页面手动关联技能
 -   **自动绑定**：达到 **mature 阶段**（500+ 张卡）后，根据性格自动匹配
 
-### 6.2 技能匹配规则
+### 6.2 意图-技能绑定
 
-自动绑定基于性格向量相似度：
+Phase 3 引入了 **IntentSkillBinding** 实体，用于管理宠物的意图-技能映射关系：
+
+| 字段            | 类型     | 说明                                        |
+| --------------- | -------- | ------------------------------------------- |
+| `id`            | UUID     | 绑定记录 ID                                 |
+| `petId`         | string   | 宠物 ID                                     |
+| `intent`        | string   | 意图标签（如 `weather`、`music`）           |
+| `skillToolId`   | string   | 关联的 Tool ID                              |
+| `source`        | string   | 绑定来源：`manual`（手动）或 `auto`（自动） |
+| `autoBindScore` | float    | 自动绑定时计算的余弦相似度分数              |
+| `priority`      | int      | 优先级，数值越大优先级越高（默认 0）        |
+| `createdDate`   | datetime | 创建时间                                    |
+| `updatedDate`   | datetime | 更新时间                                    |
+
+**绑定规则**：
+
+-   每个 `(petId, intent)` 组合唯一，不能重复绑定
+-   同一意图可以绑定到不同宠物的不同技能
+-   自动绑定的分数必须超过阈值（默认 0.7）
+
+### 6.3 SkillRouter 节点
+
+**SkillRouter** 是 AgentFlow 中的路由节点，用于根据意图查找绑定的技能：
+
+#### 节点参数
+
+| 参数       | 类型   | 必填 | 说明                              |
+| ---------- | ------ | ---- | --------------------------------- |
+| **Pet ID** | string | ✅   | 宠物 ID，用于查询该宠物的技能绑定 |
+| **Intent** | string | ✅   | 意图标签，从 Pet 节点输出中提取   |
+
+#### 使用流程
 
 ```
-相似度 = cosine_similarity(pet.personalityVector, skill.personalityProfile)
-如果 相似度 > 0.7，则自动绑定
+Start → Pet → SkillRouter → [If Tool Exists] → Tool Execution → DirectReply
+                              ↓
+                         [If No Tool] → DirectReply (fallback)
 ```
 
-### 6.3 创建技能
+#### 节点输出
 
-技能使用 OpenClaw 格式，扩展字段：
+```json
+{
+    "tool": {
+        "id": "tool-uuid",
+        "name": "weatherSkill",
+        "description": "查询天气",
+        "func": "// @openclaw-meta:{...}\n..."
+    },
+    "bindingId": "binding-uuid",
+    "source": "auto"
+}
+```
+
+如果未找到匹配的技能，`tool` 为 `null`。
+
+#### 示例 AgentFlow 配置
+
+1. **Start** 节点：接收用户输入
+2. **Pet** 节点：处理对话，输出意图识别结果
+3. **SkillRouter** 节点：
+    - Pet ID: `{{pet.id}}`
+    - Intent: `{{pet.output.intent}}`
+4. **If** 节点：判断 `{{skillRouter.output.tool}}` 是否存在
+5. **Tool** 节点：执行匹配到的技能
+6. **DirectReply** 节点：返回结果
+
+### 6.4 自动绑定机制
+
+**SkillAutoBinder** 是一个后台定时任务，每小时运行一次，自动为宠物绑定匹配的技能。
+
+#### 工作原理
+
+1. 加载所有宠物和带有 Phase 3 元数据的技能工具
+2. 对每个宠物：
+    - 检查成长等级是否满足技能的 `minLevel` 要求
+    - 计算宠物性格向量与技能 `personalityProfile` 的余弦相似度
+    - 如果相似度 > 阈值（0.7），创建自动绑定记录
+
+#### 余弦相似度计算
+
+```typescript
+function cosineSim(a: number[], b: number[]): number {
+    const len = Math.min(a.length, b.length)
+    let dot = 0,
+        magA = 0,
+        magB = 0
+    for (let i = 0; i < len; i++) {
+        dot += a[i] * b[i]
+        magA += a[i] * a[i]
+        magB += b[i] * b[i]
+    }
+    return dot / (Math.sqrt(magA) * Math.sqrt(magB))
+}
+```
+
+#### 自动绑定条件
+
+| 条件              | 说明                                         |
+| ----------------- | -------------------------------------------- |
+| `petLevel`        | 必须 >= 技能的 `minLevel`                    |
+| `boundIntents`    | 技能必须定义了至少一个意图标签               |
+| `cosineSim`       | 必须 > `PET_AUTO_BIND_THRESHOLD`（默认 0.7） |
+| `existingBinding` | 该宠物的该意图尚未绑定其他技能               |
+
+#### 日志输出
+
+```
+[SkillAutoBinder] Auto-bound skill "weatherSkill" → pet abc123 intent="weather" score=0.856
+[SkillAutoBinder] Run complete — 3 new binding(s) created
+```
+
+### 6.5 创建技能
+
+技能使用 **OpenClaw Manifest** 格式定义，Phase 3 扩展了以下字段：
+
+#### OpenClaw Manifest 完整格式
+
+```typescript
+interface OpenClawManifest {
+    name: string // 技能名称
+    version?: string // 版本号
+    description: string // 描述
+    iconUrl?: string // 图标 URL
+    type: 'api' | 'code' | 'llm' | 'python' // 技能类型
+    inputs: OpenClawSkillInput[] // 输入参数
+    entry?: string // 入口文件（code/python 类型）
+    entryContent?: string // 入口代码内容
+    config?: object // 配置（根据类型不同）
+
+    // Phase 3 扩展字段
+    personalityProfile?: number[] // 性格向量，8 维数组
+    minLevel?: number // 最低解锁等级
+    boundIntents?: string[] // 绑定的意图标签列表
+}
+```
+
+#### 示例：天气技能
 
 ```json
 {
     "name": "weatherSkill",
-    "description": "查询天气",
+    "version": "1.0.0",
+    "description": "Query current weather and forecast for a given city",
     "type": "api",
-    "inputs": [{ "property": "city", "type": "string", "required": true }],
-    "config": { "url": "https://api.weather.com/v1?city=${city}", "method": "GET" },
-    "personalityProfile": [0.1, -0.5, 0, 0.7, 0, 0, 0.3, 0.2],
+    "inputs": [
+        {
+            "property": "city",
+            "type": "string",
+            "description": "City name to query weather for",
+            "required": true
+        },
+        {
+            "property": "unit",
+            "type": "string",
+            "description": "Temperature unit: 'celsius' or 'fahrenheit'",
+            "required": false
+        }
+    ],
+    "config": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true",
+        "method": "GET"
+    },
+    "personalityProfile": [0.1, -0.5, 0.0, 0.7, 0.0, 0.0, 0.3, 0.2],
     "minLevel": 5,
-    "boundIntents": ["weather"]
+    "boundIntents": ["weather", "forecast", "temperature"]
 }
 ```
+
+#### 元数据嵌入
+
+当技能通过 OpenClaw 适配器创建时，Phase 3 元数据会自动嵌入到 Tool 的 `func` 字段顶部：
+
+```javascript
+// @openclaw-meta:{"personalityProfile":[0.1,-0.5,0,0.7,0,0,0.3,0.2],"minLevel":5,"boundIntents":["weather","forecast","temperature"]}
+async function weatherSkill(city, unit = 'celsius') {
+    // ... skill implementation
+}
+```
+
+SkillAutoBinder 通过解析 `func` 字段的第一行来获取元数据。
 
 ---
 
@@ -313,6 +476,93 @@ Content-Type: application/json
 }
 ```
 
+### 7.6 获取技能绑定列表
+
+```http
+GET /api/v1/pets/:petId/skill-bindings
+```
+
+**响应示例**：
+
+```json
+[
+    {
+        "id": "binding-uuid-1",
+        "petId": "pet-uuid",
+        "intent": "weather",
+        "skillToolId": "tool-uuid",
+        "source": "auto",
+        "autoBindScore": 0.856,
+        "priority": 0,
+        "createdDate": "2026-04-23T10:00:00Z",
+        "updatedDate": "2026-04-23T10:00:00Z"
+    },
+    {
+        "id": "binding-uuid-2",
+        "petId": "pet-uuid",
+        "intent": "music",
+        "skillToolId": "tool-uuid-2",
+        "source": "manual",
+        "autoBindScore": null,
+        "priority": 10,
+        "createdDate": "2026-04-23T11:00:00Z",
+        "updatedDate": "2026-04-23T11:00:00Z"
+    }
+]
+```
+
+### 7.7 创建技能绑定
+
+```http
+POST /api/v1/pets/:petId/skill-bindings
+Content-Type: application/json
+
+{
+    "intent": "weather",
+    "skillToolId": "tool-uuid",
+    "priority": 5
+}
+```
+
+**响应示例**：
+
+```json
+{
+    "id": "binding-uuid",
+    "petId": "pet-uuid",
+    "intent": "weather",
+    "skillToolId": "tool-uuid",
+    "source": "manual",
+    "autoBindScore": null,
+    "priority": 5,
+    "createdDate": "2026-04-23T12:00:00Z",
+    "updatedDate": "2026-04-23T12:00:00Z"
+}
+```
+
+**错误响应**：
+
+-   `400` - 缺少必填字段（intent 或 skillToolId）
+-   `409` - 该意图已绑定其他技能
+
+### 7.8 删除技能绑定
+
+```http
+DELETE /api/v1/pets/:petId/skill-bindings/:bindingId
+```
+
+**响应示例**：
+
+```json
+{
+    "message": "Binding deleted"
+}
+```
+
+**错误响应**：
+
+-   `404` - 绑定记录不存在
+
 ---
 
 ## 8. 常见问题
@@ -345,6 +595,14 @@ Content-Type: application/json
 2. 在宠物页面点击"关联技能"
 3. 选择要绑定的意图和工具
 
+或使用 API 创建绑定：
+
+```bash
+curl -X POST http://localhost:3000/api/v1/pets/{petId}/skill-bindings \
+  -H "Content-Type: application/json" \
+  -d '{"intent": "weather", "skillToolId": "tool-uuid"}'
+```
+
 ### Q5: 支持多语言吗？
 
 支持。创建宠物时选择语言：
@@ -352,6 +610,31 @@ Content-Type: application/json
 -   `zh` - 中文
 -   `en` - 英文
 -   `mixed` - 双语混合
+
+### Q6: 自动绑定的技能可以删除吗？
+
+可以。自动绑定的技能（`source: "auto"`）和手动绑定的一样，都可以通过 API 或 UI 删除。
+
+### Q7: 如何调整自动绑定阈值？
+
+通过环境变量设置：
+
+```bash
+PET_AUTO_BIND_THRESHOLD=0.8
+```
+
+默认值为 `0.7`。提高阈值会减少自动绑定数量，降低阈值会增加。
+
+### Q8: SkillRouter 找不到技能怎么办？
+
+SkillRouter 返回 `tool: null` 时，可以使用 If 节点判断并提供 fallback 回复：
+
+```
+If {{skillRouter.output.tool}} === null
+  → DirectReply: "我还没学会这个技能呢，教教我吧！"
+Else
+  → 执行技能
+```
 
 ---
 
@@ -370,8 +653,15 @@ Content-Type: application/json
 -   [Pet Agent 设计文档](./pet-agent-design.md)
 -   [Schedule 节点使用指南](./schedule-node-usage.md)
 
+### C. 数据库迁移
+
+Phase 3 新增 `intent_skill_binding` 表，迁移文件：
+
+-   `1769300000000-AddIntentSkillBinding.ts`（sqlite/mysql/mariadb/postgres）
+
 ---
 
 **文档结束**。更新记录：
 
+-   v1.1 (2026-04-23) 新增 Phase 3 技能绑定系统：IntentSkillBinding、SkillRouter、SkillAutoBinder、API 接口
 -   v1.0 (2026-04-21) 初版

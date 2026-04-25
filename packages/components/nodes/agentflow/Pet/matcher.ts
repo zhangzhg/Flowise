@@ -38,13 +38,37 @@ function parseEmbedding(raw: string | null | undefined): number[] {
     }
 }
 
-export function findTopMatches(queryEmbedding: number[], cards: StoredCard[], topK: number = 5, minScore: number = 0): CardMatch[] {
+function textOverlapScore(query: string, cardInput: string): number {
+    const q = query.toLowerCase()
+    const c = cardInput.toLowerCase()
+    if (c.includes(q) || q.includes(c)) return 0.6
+    const qChars = new Set(q.replace(/\s/g, ''))
+    const cChars = c.replace(/\s/g, '')
+    let hits = 0
+    for (const ch of cChars) if (qChars.has(ch)) hits++
+    return qChars.size > 0 ? Math.min(0.55, hits / qChars.size) : 0
+}
+
+export function findTopMatches(
+    queryEmbedding: number[],
+    cards: StoredCard[],
+    topK: number = 5,
+    minScore: number = 0,
+    queryText?: string
+): CardMatch[] {
     if (!queryEmbedding.length) return []
     const scored: CardMatch[] = []
     for (const card of cards) {
         const emb = parseEmbedding(card.embedding)
-        if (!emb.length) continue
-        const score = cosine(queryEmbedding, emb)
+        let score: number
+        if (emb.length) {
+            score = cosine(queryEmbedding, emb)
+        } else if (queryText) {
+            // Fallback for cards without embeddings (e.g. added via REST API)
+            score = textOverlapScore(queryText, card.input)
+        } else {
+            continue
+        }
         if (score >= minScore) {
             scored.push({
                 cardId: card.id,

@@ -6,6 +6,7 @@ import { parseTeachingCommand, computePersonalityDelta } from './teachingParser'
 import { findTopMatches, StoredCard } from './matcher'
 import { deriveStage, deriveLevel } from './stage'
 import { buildEggResponse, buildBabbleResponse, buildFewShotMessages, selectStagePrompt } from './responder'
+import { applyTurnDrift, consolidateSession } from './personalityDrift'
 
 const ECHO_RECALL_TOPK = 5
 const CHAT_RECALL_TOPK = 5
@@ -149,6 +150,23 @@ class Pet_Agentflow implements INode {
         if (!pet) throw new Error(`Pet not found for userId=${userId}. Please create a pet first.`)
 
         const cardRepo = appDataSource.getRepository(databaseEntities['Card'])
+        const eventRepo = databaseEntities['PetPersonalityEvent']
+            ? appDataSource.getRepository(databaseEntities['PetPersonalityEvent'])
+            : null
+
+        // Session change detection: if chatId differs from last session, consolidate previous session
+        if (eventRepo && chatId) {
+            const attrs = this.parseJson(pet.attributes) as { [k: string]: any }
+            const lastChatId = attrs._lastChatId as string | undefined
+            if (lastChatId && lastChatId !== chatId) {
+                consolidateSession({ petId: pet.id, petRepo, eventRepo, sessionChatId: lastChatId }).catch(() => {})
+            }
+            if (lastChatId !== chatId) {
+                attrs._lastChatId = chatId
+                await petRepo.update(pet.id, { attributes: JSON.stringify(attrs) })
+                pet.attributes = JSON.stringify(attrs)
+            }
+        }
 
         // Parse possible teaching command
         const parsed = parseTeachingCommand(userText)
@@ -163,6 +181,7 @@ class Pet_Agentflow implements INode {
             cardRepo,
             embeddings,
             chatModel,
+            eventRepo,
             nodeData,
             chatId,
             sseStreamer,
@@ -198,27 +217,23 @@ class Pet_Agentflow implements INode {
         })
         await cardRepo.save(card)
 
-        // Update pet attributes
+        // Update pet attributes (cardCount/exp/level live in attrs, not growthCycle)
         const attrs = this.parseJson(pet.attributes) as { [k: string]: number }
         const personalityVec = this.parseJson(pet.personalityVector) as number[]
-        const growthCycle = this.parseJson(pet.growthCycle) as { cardCount: number; exp: number; level: number }
 
         const delta = computePersonalityDelta(parsed!.traitTags)
         const newPersonality = personalityVec.map((v, i) => Math.max(-1, Math.min(1, v + (delta[i] ?? 0) * 0.05)))
 
-        growthCycle.cardCount = (growthCycle.cardCount || 0) + 1
-        growthCycle.exp = (growthCycle.exp || 0) + 10
-        growthCycle.level = deriveLevel(growthCycle.exp)
-
+        attrs.cardCount = (attrs.cardCount || 0) + 1
+        attrs.exp = (attrs.exp || 0) + 10
+        attrs.level = deriveLevel(attrs.exp)
         attrs.hunger = Math.max(0, (attrs.hunger ?? 100) - 5)
 
         await petRepo.update(pet.id, {
             attributes: JSON.stringify(attrs),
-            personalityVector: JSON.stringify(newPersonality),
-            growthCycle: JSON.stringify(growthCycle)
+            personalityVector: JSON.stringify(newPersonality)
         })
 
-        const _stage = deriveStage(growthCycle.cardCount)
         const replyMap: Record<string, string> = {
             vocab: '咕！记住了！',
             phrase: '嗯！学会了！',
@@ -236,14 +251,15 @@ class Pet_Agentflow implements INode {
         cardRepo: any,
         embeddings: Embeddings,
         chatModel: BaseChatModel | undefined,
+        eventRepo: any,
         nodeData: INodeData,
         chatId: string,
         sseStreamer: IServerSideEventStreamer | undefined,
         isLastNode: boolean,
         options: ICommonObject
     ) {
-        const growthCycle = this.parseJson(pet.growthCycle) as { cardCount: number; exp: number; level: number }
-        const cardCount = growthCycle.cardCount || 0
+        const attrs = this.parseJson(pet.attributes) as { [k: string]: number }
+        const cardCount = attrs.cardCount || 0
         const stage = deriveStage(cardCount)
 
         // Egg stage: no cards, no LLM
@@ -261,7 +277,7 @@ class Pet_Agentflow implements INode {
         const actionCards = allCards.filter((c: StoredCard) => c.cardType === 'action')
 
         // Check for action intent match
-        const actionMatches = findTopMatches(queryEmbedding, actionCards, ACTION_TOPK, ACTION_THRESHOLD)
+        const actionMatches = findTopMatches(queryEmbedding, actionCards, ACTION_TOPK, ACTION_THRESHOLD, userText)
         if (actionMatches.length > 0) {
             const intent = actionMatches[0].output
             const responseText = `[${intent}]`
@@ -270,19 +286,19 @@ class Pet_Agentflow implements INode {
 
         // Babble stage: direct recall
         if (stage === 'babble') {
-            const matches = findTopMatches(queryEmbedding, nonActionCards, ECHO_RECALL_TOPK)
+            const matches = findTopMatches(queryEmbedding, nonActionCards, ECHO_RECALL_TOPK, 0, userText)
             const resp = buildBabbleResponse(matches)
             return this.buildReturn(resp.text, nodeData, userText, chatId, sseStreamer, isLastNode)
         }
 
         // Echo/Talk/Mature: LLM-based response
         if (!chatModel) {
-            const matches = findTopMatches(queryEmbedding, nonActionCards, ECHO_RECALL_TOPK)
+            const matches = findTopMatches(queryEmbedding, nonActionCards, ECHO_RECALL_TOPK, 0, userText)
             const resp = buildBabbleResponse(matches)
             return this.buildReturn(resp.text, nodeData, userText, chatId, sseStreamer, isLastNode)
         }
 
-        const topMatches = findTopMatches(queryEmbedding, nonActionCards, CHAT_RECALL_TOPK)
+        const topMatches = findTopMatches(queryEmbedding, nonActionCards, CHAT_RECALL_TOPK, 0, userText)
         const recentVocab = await this.getRecentVocab(cardRepo, pet.id, 30)
         const systemPrompt = selectStagePrompt(stage, recentVocab, pet.personalityNarrative)
         const fewShots = buildFewShotMessages(topMatches)
@@ -303,11 +319,19 @@ class Pet_Agentflow implements INode {
                 responseText += token
             }
             sseStreamer.streamEndEvent(chatId)
-            // Already streamed — pass null streamer to buildReturn to avoid double-stream
+            // Apply personality drift after streaming (fire-and-forget so it doesn't delay response)
+            if (eventRepo) {
+                applyTurnDrift({ userText, petReply: responseText, stage, chatModel, pet, petRepo, eventRepo, chatId }).catch(() => {})
+            }
             return this.buildReturn(responseText, nodeData, userText, chatId, undefined, false)
         } else {
             const response = await chatModel.invoke(messages as any, { signal: abortController?.signal })
             responseText = typeof response.content === 'string' ? response.content : String(response.content)
+        }
+
+        // Apply personality drift synchronously for non-streaming path
+        if (eventRepo) {
+            await applyTurnDrift({ userText, petReply: responseText, stage, chatModel, pet, petRepo, eventRepo, chatId }).catch(() => {})
         }
 
         return this.buildReturn(responseText, nodeData, userText, chatId, sseStreamer, isLastNode)

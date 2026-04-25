@@ -201,11 +201,20 @@ export function adaptSkillToTool(parsed: ParsedSkill): AdaptedTool {
             throw new Error(`unsupported skill type: ${(manifest as { type: string }).type}`)
     }
 
+    // Prepend Phase 3 metadata as a JSON comment so SkillAutoBinder can detect it
+    const phase3 = {
+        personalityProfile: manifest.personalityProfile,
+        minLevel: manifest.minLevel,
+        boundIntents: manifest.boundIntents
+    }
+    const hasPh3 = manifest.personalityProfile || manifest.minLevel !== undefined || manifest.boundIntents
+    const funcWithMeta = hasPh3 ? `// @openclaw-meta:${JSON.stringify(phase3)}\n${func}` : func
+
     return {
         name: manifest.name,
         description: manifest.description,
         iconSrc: manifest.iconUrl,
         schema,
-        func
+        func: funcWithMeta
     }
 }

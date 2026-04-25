@@ -302,19 +302,20 @@ const PetPage = () => {
                                 </Paper>
                                 <Stack direction='row' spacing={1}>
                                     <TextField
-                                        fullWidth
                                         size='small'
                                         value={chatInput}
                                         onChange={(e) => setChatInput(e.target.value)}
                                         onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleChat()}
                                         placeholder={pet.petFlowId ? t('pet.chat') : t('pet.linkFlowFirst')}
                                         disabled={!pet.petFlowId || chatting}
+                                        sx={{ flex: 1 }}
                                     />
                                     <Button
                                         variant='contained'
                                         onClick={handleChat}
                                         disabled={!pet.petFlowId || chatting || !chatInput.trim()}
                                         endIcon={<IconSend />}
+                                        sx={{ flexShrink: 0, minWidth: 80 }}
                                     >
                                         {t('pet.send')}
                                     </Button>

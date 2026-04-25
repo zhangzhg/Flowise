@@ -193,6 +193,19 @@
         "flowLinked": "AgentFlow linked",
         "noFlowLinked": "No AgentFlow linked yet. Click 'Link AgentFlow' to set one up."
     },
+    "petSkills": {
+        "title": "Pet Skills",
+        "addBinding": "Add Skill Binding",
+        "intent": "Intent",
+        "skillTool": "Skill Tool",
+        "source": "Source",
+        "priority": "Priority",
+        "selectTool": "Select a tool...",
+        "autoUnlocked": "Auto-Unlocked Skills",
+        "manualBindings": "Manual Bindings",
+        "noManualBindings": "No manual skill bindings yet. Click 'Add Skill Binding' to link a skill.",
+        "autoScore": "Match Score"
+    },
     "tools": {
         "title": "Tools",
         "description": "External functions or APIs the agent can use to take action",

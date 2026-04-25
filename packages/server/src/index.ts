@@ -26,6 +26,7 @@ import { QueueManager } from './queue/QueueManager'
 import { RedisEventSubscriber } from './queue/RedisEventSubscriber'
 import flowiseApiV1Router from './routes'
 import schedulerService from './services/schedules'
+import skillAutoBinder from './utils/pet/cron/SkillAutoBinder'
 import { UsageCacheManager } from './UsageCacheManager'
 import { getEncryptionKey, getNodeModulesPackagePath } from './utils'
 import { API_KEY_BLACKLIST_URLS, WHITELIST_URLS } from './utils/constants'
@@ -157,6 +158,10 @@ export class App {
             // Initialize Scheduler Service
             await schedulerService.init(this.AppDataSource)
             logger.info('⏰ [server]: Scheduler service initialized successfully')
+
+            // Initialize Pet Skill Auto Binder
+            skillAutoBinder.init(this.AppDataSource)
+            logger.info('🐾 [server]: Pet skill auto-binder initialized')
 
             logger.info('🎉 [server]: All initialization steps completed successfully!')
         } catch (error) {

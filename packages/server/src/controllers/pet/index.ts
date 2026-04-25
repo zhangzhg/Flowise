@@ -48,6 +48,7 @@ const updateMyPet = async (req: Request, res: Response, next: NextFunction) => {
             name: body.name,
             language: body.language,
             skinId: body.skinId,
+            petFlowId: body.petFlowId,
             growthCycle: body.growthCycle
         })
         return res.json(pet)
