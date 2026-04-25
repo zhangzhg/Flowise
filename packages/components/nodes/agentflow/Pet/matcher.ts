@@ -39,14 +39,19 @@ function parseEmbedding(raw: string | null | undefined): number[] {
 }
 
 function textOverlapScore(query: string, cardInput: string): number {
-    const q = query.toLowerCase()
-    const c = cardInput.toLowerCase()
-    if (c.includes(q) || q.includes(c)) return 0.6
+    const q = query.trim().toLowerCase()
+    const c = cardInput.trim().toLowerCase()
+    if (!q || !c) return 0
+    if (q === c) return 1
+    if (c.includes(q) || q.includes(c)) {
+        const ratio = Math.min(q.length, c.length) / Math.max(q.length, c.length)
+        return 0.8 + 0.15 * ratio
+    }
     const qChars = new Set(q.replace(/\s/g, ''))
     const cChars = c.replace(/\s/g, '')
     let hits = 0
     for (const ch of cChars) if (qChars.has(ch)) hits++
-    return qChars.size > 0 ? Math.min(0.55, hits / qChars.size) : 0
+    return qChars.size > 0 ? Math.min(0.7, hits / qChars.size) : 0
 }
 
 export function findTopMatches(

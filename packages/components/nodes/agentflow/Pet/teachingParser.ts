@@ -41,8 +41,10 @@ const TEACH_PATTERNS: Array<{
 
     // 跟我学:看到妈妈说"妈妈你好"
     { re: /^跟我学[：:]\s*(.+?)[说回][""](.+)[""]$/su, type: 'phrase', inputGroup: 1, outputGroup: 2, defaultTags: [] },
-    // 记住:早上好=>早上好呀
-    { re: /^记住[：:]\s*(.+?)\s*=>\s*(.+)$/su, type: 'phrase', inputGroup: 1, outputGroup: 2, defaultTags: [] },
+    // 跟我学:你好→你好  /  跟我学:你好=>你好
+    { re: /^跟我学[：:]\s*(.+?)\s*(?:→|=>|->)\s*(.+)$/su, type: 'phrase', inputGroup: 1, outputGroup: 2, defaultTags: [] },
+    // 记住:早上好=>早上好呀  /  记住:早上好→早上好呀
+    { re: /^记住[：:]\s*(.+?)\s*(?:=>|→|->)\s*(.+)$/su, type: 'phrase', inputGroup: 1, outputGroup: 2, defaultTags: [] },
     // learn: say "good morning" when greeting
     { re: /^learn[：:]?\s+say\s+[""](.+?)[""]\s+when\s+(.+)$/isu, type: 'phrase', inputGroup: 1, outputGroup: 2, defaultTags: [] },
 
