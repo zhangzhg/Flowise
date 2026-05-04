@@ -327,6 +327,94 @@ export class SchedulerService {
         this.stopJob(scheduleId)
         await appServer.AppDataSource.getRepository(FlowSchedule).delete(scheduleId)
     }
+
+    // ─── Agent-created schedules (no canvas Schedule node required) ──────────
+    //
+    // Schedules with nodeId starting with 'agent-tool:' are created at runtime
+    // by tool-calling agents (e.g. Pet calling the `schedule` tool). They reuse
+    // the same FlowSchedule table + fire mechanism. Their contextParams carry
+    // a `prompt` field that downstream nodes (e.g. Pet) treat as user input.
+
+    public async createAgentSchedule(params: {
+        chatflowId: string
+        workspaceId: string
+        name: string
+        scheduleType: 'cron' | 'interval' | 'delay'
+        cronExpression?: string
+        interval?: number
+        delay?: number
+        timezone?: string
+        prompt: string
+        userId: string
+        maxExecutions?: number
+    }): Promise<FlowSchedule> {
+        const appServer = getRunningExpressApp()
+        const repo = appServer.AppDataSource.getRepository(FlowSchedule)
+
+        // Validate before persist
+        if (params.scheduleType === 'cron') {
+            if (!params.cronExpression || !cron.validate(params.cronExpression)) {
+                throw new Error(`Invalid cron expression: ${params.cronExpression}`)
+            }
+        } else if (params.scheduleType === 'interval') {
+            if (!params.interval || params.interval < 60) {
+                throw new Error('interval must be >= 60 seconds')
+            }
+        } else if (params.scheduleType === 'delay') {
+            if (!params.delay || params.delay <= 0) {
+                throw new Error('delay must be > 0 seconds')
+            }
+        }
+
+        // Per-(chatflow,user) name uniqueness — duplicate name updates the existing one
+        const nodeId = `agent-tool:${params.chatflowId}:${params.userId}:${params.name}`
+        const existing = await repo.findOne({ where: { chatflowId: params.chatflowId, nodeId } })
+
+        const contextParams = JSON.stringify([
+            { key: 'prompt', value: params.prompt },
+            { key: 'userId', value: params.userId },
+            { key: 'agentCreated', value: '1' }
+        ])
+
+        const row = existing ?? new FlowSchedule()
+        row.chatflowId = params.chatflowId
+        row.workspaceId = params.workspaceId
+        row.nodeId = nodeId
+        row.name = params.name
+        row.scheduleType = params.scheduleType as any
+        row.cronExpression = params.cronExpression ?? undefined
+        row.interval = params.interval ?? undefined
+        row.delay = params.delay ?? undefined
+        row.timezone = params.timezone ?? 'UTC'
+        row.contextParams = contextParams
+        row.status = 'active' as ScheduleStatus
+        row.maxExecutions = params.maxExecutions ?? 0
+        if (!existing) row.executionCount = 0
+
+        const saved = await repo.save(row)
+        if (existing) this.stopJob(saved.id)
+        this.registerJob(saved)
+        return saved
+    }
+
+    public async cancelAgentScheduleByName(params: { chatflowId: string; userId: string; name: string }): Promise<boolean> {
+        const appServer = getRunningExpressApp()
+        const repo = appServer.AppDataSource.getRepository(FlowSchedule)
+        const nodeId = `agent-tool:${params.chatflowId}:${params.userId}:${params.name}`
+        const found = await repo.findOne({ where: { chatflowId: params.chatflowId, nodeId } })
+        if (!found) return false
+        this.stopJob(found.id)
+        await repo.delete(found.id)
+        return true
+    }
+
+    public async listAgentSchedules(params: { chatflowId: string; userId: string }): Promise<FlowSchedule[]> {
+        const appServer = getRunningExpressApp()
+        const repo = appServer.AppDataSource.getRepository(FlowSchedule)
+        const prefix = `agent-tool:${params.chatflowId}:${params.userId}:`
+        const all = await repo.find({ where: { chatflowId: params.chatflowId } })
+        return all.filter((s) => s.nodeId.startsWith(prefix))
+    }
 }
 
 export default SchedulerService.getInstance()

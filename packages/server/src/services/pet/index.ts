@@ -251,11 +251,29 @@ const feedCard = async (userId: string, body: FeedCardInput) => {
         const pet = await petRepo.findOneBy({ userId })
         if (!pet) throw new InternalFlowiseError(StatusCodes.NOT_FOUND, 'Pet not found — create one first')
 
+        const trimmedInput = body.input.trim().slice(0, 1024)
+        const trimmedOutput = body.output.slice(0, 4096)
+
+        // Reinforcement learning: re-feeding the same (input, output) replaces the
+        // existing card (refresh createdDate). Different output for same input keeps
+        // the older wrong card alive but the matcher tiebreaks by recency, so the
+        // newer answer wins — repeating the correct answer naturally outranks it.
+        const existingSamePair = await cardRepo.findOneBy({
+            petId: pet.id,
+            input: trimmedInput,
+            output: trimmedOutput
+        })
+        let savedCard
+        let isReinforcement = false
+        if (existingSamePair) {
+            await cardRepo.delete(existingSamePair.id) // remove and reinsert to refresh createdDate
+            isReinforcement = true
+        }
         const card = cardRepo.create({
             petId: pet.id,
             cardType: body.cardType,
-            input: body.input.trim().slice(0, 1024),
-            output: body.output.slice(0, 4096),
+            input: trimmedInput,
+            output: trimmedOutput,
             intentLabel: body.intentLabel,
             traitTags: body.traitTags ? JSON.stringify(body.traitTags) : undefined,
             stateDelta: body.stateDelta ? JSON.stringify(body.stateDelta) : undefined,
@@ -263,12 +281,13 @@ const feedCard = async (userId: string, body: FeedCardInput) => {
             source: body.source && ['user', 'library', 'parser'].includes(body.source) ? body.source : 'user',
             libraryName: body.libraryName
         })
-        const savedCard = await cardRepo.save(card)
+        savedCard = await cardRepo.save(card)
 
         // Apply attribute deltas + counters
         const attrs = parseAttributes(pet.attributes)
-        attrs.cardCount += 1
-        attrs.exp += 10
+        // Reinforcement (same pair) doesn't grow cardCount but still gives small exp
+        if (!isReinforcement) attrs.cardCount += 1
+        attrs.exp += isReinforcement ? 3 : 10
         if (body.stateDelta) {
             if (typeof body.stateDelta.mood === 'number') attrs.mood = clamp(attrs.mood + body.stateDelta.mood, -100, 100)
             if (typeof body.stateDelta.hunger === 'number') attrs.hunger = clamp(attrs.hunger + body.stateDelta.hunger, 0, 100)

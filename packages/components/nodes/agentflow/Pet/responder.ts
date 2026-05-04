@@ -49,9 +49,41 @@ export function buildTalkSystemPrompt(narrative: string | undefined): string {
     return `你是一只 AI 宠物。${personality}\n用自然的语言回应用户，保持角色。不超过80个字。`
 }
 
-export function buildMatureSystemPrompt(narrative: string | undefined): string {
+export interface ToolParamDef {
+    type: string
+    description: string
+    default?: any
+}
+
+export interface ToolDef {
+    name: string
+    description: string
+    executor: 'client' | 'server'
+    params: Record<string, ToolParamDef>
+}
+
+function buildToolSchemaSection(tools: ToolDef[]): string {
+    if (!tools.length) return ''
+    const lines: string[] = ['', '你可以调用以下工具：', '']
+    for (const tool of tools) {
+        const paramDesc = Object.entries(tool.params)
+            .map(([k, v]) => `${k}:${v.type}(${v.description}${v.default !== undefined ? `,默认${v.default}` : ''})`)
+            .join(', ')
+        lines.push(`[${tool.name}] ${tool.description} — ${paramDesc}`)
+    }
+    lines.push(
+        '',
+        '需要调用工具时，必须严格返回以下 JSON，不能包含任何其他文字：',
+        '{"speech":"<对用户说的话>","tool":{"name":"<工具名>","params":{...}}}',
+        '',
+        '不需要工具时，直接回复普通文字，不要输出 JSON。'
+    )
+    return lines.join('\n')
+}
+
+export function buildMatureSystemPrompt(narrative: string | undefined, tools: ToolDef[] = []): string {
     const personality = narrative ?? '你是一只独特个性的 AI 宠物，有自己的想法和感受。'
-    return `你是一只成熟的 AI 宠物。${personality}\n自由表达，保持角色一致。`
+    return `你是一只成熟的 AI 宠物。${personality}\n自由表达，保持角色一致。${buildToolSchemaSection(tools)}`
 }
 
 export function buildFewShotMessages(matches: CardMatch[]): Array<{ role: string; content: string }> {
@@ -63,8 +95,8 @@ export function buildFewShotMessages(matches: CardMatch[]): Array<{ role: string
     return msgs
 }
 
-export function selectStagePrompt(stage: PetStage, recentVocab: string[], narrative?: string): string {
+export function selectStagePrompt(stage: PetStage, recentVocab: string[], narrative?: string, tools: ToolDef[] = []): string {
     if (stage === 'echo') return buildEchoSystemPrompt(recentVocab, narrative)
-    if (stage === 'mature') return buildMatureSystemPrompt(narrative)
+    if (stage === 'mature') return buildMatureSystemPrompt(narrative, tools)
     return buildTalkSystemPrompt(narrative)
 }

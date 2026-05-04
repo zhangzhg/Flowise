@@ -1,6 +1,6 @@
 # Pet Agent System — 详细设计文档
 
-**版本** v1.1 · **状态** 准备实施 · **项目** Flowise 扩展 · **最后更新** 2026-04-20
+**版本** v1.3 · **状态** 持续开发 · **项目** Flowise 扩展 · **最后更新** 2026-05-04
 
 > v1.1 相对 v1.0 的关键变更：**全面节点化**。Provider 不再是后端服务单例，而是 Flowise 画布上的节点；Pet 业务逻辑拆成一组自定义节点，可自由拼装；同时保留 `PetCore` 聚合节点给"零配置党"。
 
@@ -26,6 +26,7 @@
 -   [15. 非功能需求](#15-非功能需求)
 -   [16. 风险与开放问题](#16-风险与开放问题)
 -   [17. 附录](#17-附录)
+-   [18. 已实施功能详细设计](#18-已实施功能详细设计)
 
 ---
 
@@ -257,15 +258,25 @@ class Skin {
 
 ### 5.1 成长阶段
 
-| Stage         | 条件    | 输出策略                                      | 可解锁能力          |
-| ------------- | ------- | --------------------------------------------- | ------------------- |
-| **egg 🥚**    | cards=0 | 预设原始音随机（`.../?/~/咕`）                | 仅"学习"指令        |
-| **babble 🐣** | 1–19    | RAG top-1 cosine>0.8 直出，否则原始音         | 学习、简单回应      |
-| **echo 👶**   | 20–99   | 小 LLM + 词汇白名单 prompt + top-5 few-shot   | 以上 + intent 识别  |
-| **talk 🧒**   | 100–499 | 完整 LLM + personalityNarrative system prompt | 以上 + manual skill |
-| **mature 🧑** | ≥500    | 完整 LLM，高温度，personality 主导            | 全部 + 自动 skill   |
+成长进度由**双轴**驱动：`progress = cardCount × 2 + chatTurns`
 
-派生函数 `deriveStage(cardCount)` 放 `packages/server/src/utils/pet/stage.ts`。
+| Stage         | progress 阈值 | 输出策略                                      | 可解锁能力          |
+| ------------- | ------------- | --------------------------------------------- | ------------------- |
+| **egg 🥚**    | 0–1           | 预设原始音随机（`.../?/~/咕`）                | 仅"学习"指令        |
+| **babble 🐣** | 2–39          | RAG top-1 cosine>0.8 直出，否则原始音         | 学习、简单回应      |
+| **echo 👶**   | 40–199        | 小 LLM + 词汇白名单 prompt + top-5 few-shot   | 以上 + intent 识别  |
+| **talk 🧒**   | 200–499       | 完整 LLM + personalityNarrative system prompt | 以上 + manual skill |
+| **mature 🧑** | ≥500          | 完整 LLM，高温度，personality 主导 + 工具调用 | 全部 + 自动 skill   |
+
+```ts
+// packages/components/nodes/agentflow/Pet/stage.ts
+export function deriveProgress(cardCount: number, chatTurns: number): number {
+    return Math.floor(cardCount * 2 + chatTurns)
+}
+export function deriveStage(cardCount: number, chatTurns: number = 0): PetStage
+```
+
+**设计理由**：纯卡片驱动会让高频对话用户进展过慢；双轴确保"积极训练 + 积极对话"都能推动成长，同时保留卡片 2× 权重体现"主动教学"的重要性。
 
 ### 5.2 Trait 向量（8 维）
 
@@ -991,7 +1002,343 @@ DirectReply 节点 → Message
 
 ---
 
+---
+
+## 18. 已实施功能详细设计
+
+> 本章记录 v1.2/v1.3 实际落地的实现细节，与前章的规划保持对应，是"设计实现对照"。
+
+### 18.1 统一工具调用系统
+
+#### 18.1.1 设计目标
+
+成熟期宠物可以让 LLM 自主决定调用工具（TTS、定时任务等），同时保持对话流畅：
+
+-   LLM 的所有回复使用**一种格式**，消除"工具调用时不回话"问题
+-   工具按执行位置分为 `client`（浏览器）和 `server`（NodeVM 沙箱）两类
+
+#### 18.1.2 LLM 输出格式约定
+
+成熟期 system prompt 约定输出格式：
+
+```json
+{
+    "speech": "宠物说的话（始终非空）",
+    "tool": {
+        "name": "工具名",
+        "params": { "key": "value" },
+        "executor": "client | server"
+    }
+}
+```
+
+`tool` 字段可选。未调用工具时只返回 `{"speech":"..."}` 或纯文本（兜底）。
+
+#### 18.1.3 三层解析（parseToolResponse）
+
+```
+1. JSON.parse(text)             → 成功则用
+2. regex: /\{[\s\S]*\}/         → 提取首个 JSON 块再 parse
+3. 纯文本兜底                   → { speech: text }
+```
+
+位置：`packages/components/nodes/agentflow/Pet/PetCore.ts`
+
+#### 18.1.4 路由逻辑
+
+```
+parseToolResponse(llmOutput)
+  ├── toolCall.executor === 'client'
+  │     └── 返回给前端 buildReturn({ toolCall }) → index.jsx 调用 executeTool()
+  ├── toolCall.executor === 'server'
+  │     └── executeJavaScriptCode(tool.func, {input, $ctx}, {timeout:15000})
+  │           ├── result 含 __client_tool__ → 转为 client toolCall 返回前端
+  │           └── 否则 → result 追加到 speech
+  └── 无 toolCall → 直接返回 speech
+```
+
+#### 18.1.5 $ctx 沙箱注入
+
+所有 server 工具的 NodeVM 沙箱里可访问 `$ctx`：
+
+```ts
+const $ctx = {
+    chatflowId: string, // Pet 节点所属 AgentFlow 的 ID
+    userId: string, // 发起对话的用户 ID
+    workspaceId: string, // 用户活跃工作区 ID
+    baseURL: string, // 服务器内部地址，用于调用内部 API
+    apiKey: string | null // 已废弃（改用内部源绕过），保留兼容
+}
+```
+
+#### 18.1.6 **client_tool** 桥接模式
+
+Server 工具函数想触发客户端行为时（如 TTS），返回 JSON 桥接信号：
+
+```js
+return JSON.stringify({
+    __client_tool__: 'tts',
+    texts: ['cat', 'map', 'cap'],
+    times: 3,
+    rate: 0.8,
+    interval: 500
+})
+```
+
+PetCore 检测到 `__client_tool__` 字段后，自动转为 `executor:'client'` 的 toolCall 传给前端。**效果**：工具保存在服务端工具页面，但实际执行在浏览器 Web Speech API。
+
+#### 18.1.7 System Prompt 工具 Schema 注入
+
+```ts
+// responder.ts
+export interface ToolDef {
+    name: string
+    description: string
+    executor: 'client' | 'server'
+    params: Record<string, ToolParamDef>
+}
+
+function buildToolSchemaSection(tools: ToolDef[]): string
+export function buildMatureSystemPrompt(narrative, tools: ToolDef[]): string
+export function selectStagePrompt(stage, recentVocab, narrative?, tools: ToolDef[]): string
+```
+
+工具 schema 以结构化文本注入 system prompt，告知 LLM 每个工具的名称、参数类型、executor 类型，以及何时调用。
+
+---
+
+### 18.2 Web Speech API 语音系统
+
+#### 18.2.1 架构
+
+```
+前端 usePetTts.js (hook)
+  ├── speak(text)        → SpeechSynthesisUtterance
+  ├── stop()             → synth.cancel()
+  ├── settings           → localStorage 'pet_tts_settings'
+  └── voices             → synth.getVoices()
+
+前端 toolExecutors.js
+  └── tts executor       → speakOnce() × times × texts list
+
+index.jsx
+  ├── 设置按钮 → TTS 设置对话框
+  └── handleChat → executeTool({ name:'tts', params, executor:'client' }, { ttsHook })
+```
+
+#### 18.2.2 TTS 设置项
+
+| 字段        | 类型    | 默认        | 说明                     |
+| ----------- | ------- | ----------- | ------------------------ |
+| `enabled`   | boolean | true        | 开关                     |
+| `autoPlay`  | boolean | true        | 收到回复自动朗读         |
+| `engine`    | string  | 'webSpeech' | 引擎（Edge/OpenAI 占位） |
+| `rate`      | number  | 1.0         | 语速 0.5–2.0             |
+| `pitch`     | number  | 1.0         | 音调 0.0–2.0             |
+| `voiceName` | string  | ''          | 具体音色名（空=默认）    |
+
+持久化：`localStorage` key `pet_tts_settings`。
+
+#### 18.2.3 tts 工具执行器（client 端）
+
+```js
+// toolExecutors.js — tts executor
+;async ({ text, texts, times = 1, rate = 1.0, interval = 300 }, { ttsHook } = {}) => {
+    const list = Array.isArray(texts) && texts.length ? texts : text ? [text] : []
+    const n = Math.min(Math.max(1, times), 50) // 循环上限 50
+    const r = Math.min(Math.max(0.5, rate), 2.0)
+    const gap = Math.max(0, Math.min(5000, interval))
+    for (let i = 0; i < n; i++) {
+        for (const t of list) {
+            await speakOnce(t, r, ttsHook)
+            if (gap > 0) await sleep(gap)
+        }
+    }
+}
+```
+
+每次朗读前 `synth.cancel()` 确保不叠加播放。
+
+---
+
+### 18.3 定时任务工具（Schedule as Tool）
+
+#### 18.3.1 设计
+
+宠物在成熟期可以通过 LLM 工具调用自主创建/取消定时任务，无需用户手动配置。
+
+典型场景：用户说"每天早上 8 点帮我朗读单词：cat map cap"→ 宠物调用 `schedule` 工具 → 创建 cron 任务 → 每天 8 点触发 AgentFlow→ 宠物自动朗读。
+
+#### 18.3.2 工具列表
+
+| 工具名           | executor | 说明               |
+| ---------------- | -------- | ------------------ |
+| `schedule`       | server   | 创建/覆盖定时任务  |
+| `cancelSchedule` | server   | 按名称取消定时任务 |
+
+两个工具的 schema 通过 `seedBuiltinTools.ts` 自动种入数据库，每个工作区一份（upsert）。
+
+#### 18.3.3 schedule 工具参数
+
+| 参数             | 类型   | 必填              | 说明                          |
+| ---------------- | ------ | ----------------- | ----------------------------- |
+| `name`           | string | ✅                | 任务名称，同名覆盖            |
+| `scheduleType`   | string | ✅                | `cron` / `interval` / `delay` |
+| `cronExpression` | string | cron 类型必填     | 如 `"0 8 * * *"`              |
+| `interval`       | number | interval 类型必填 | 间隔秒数                      |
+| `delay`          | number | delay 类型必填    | 一次性延迟秒数                |
+| `prompt`         | string | ✅                | 触发时给宠物的指令            |
+
+#### 18.3.4 nodeId 命名空间
+
+代理创建的任务使用固定格式的 nodeId 以区分用户手动创建的调度：
+
+```
+agent-tool:<chatflowId>:<userId>:<name>
+```
+
+`contextParams` 里保存 `prompt` 和 `userId`，供调度器触发时提取。
+
+#### 18.3.5 触发时的入口检测
+
+调度器执行时，将触发上下文 JSON 作为问题传给 AgentFlow：
+
+```json
+{ "prompt": "请朗读 cat map cap 5 次", "userId": "xxx", "agentCreated": true }
+```
+
+PetCore 检测 `userText.startsWith('{') && includes '"prompt"'` 后，提取 `prompt` 作为实际用户输入，`userId` 用于加载对应宠物。
+
+#### 18.3.6 REST API
+
+| Method | 路径                             | 说明                 |
+| ------ | -------------------------------- | -------------------- |
+| POST   | `/api/v1/pet/me/schedules`       | 创建/更新定时任务    |
+| GET    | `/api/v1/pet/me/schedules`       | 列出当前宠物所有任务 |
+| DELETE | `/api/v1/pet/me/schedules/:name` | 按名称取消任务       |
+
+Controller 仅做基础字段校验（`name`/`scheduleType`/`prompt` 非空），不设硬编码配额或间隔下限——约束逻辑写在工具的 `func` 里，由使用场景决定。
+
+---
+
+### 18.4 内部源认证绕过（Internal Source Auth Bypass）
+
+#### 18.4.1 问题
+
+Server 工具的 `func` 在 NodeVM 沙箱中运行，通过 HTTP 调用内部 API（如 `/api/v1/pet/me/schedules`）。沙箱没有用户的 Cookie/JWT，无法通过标准 auth 中间件。
+
+使用 API Key 需要用户预先配置，且 API Key 不携带 `userId` 信息，无法定位宠物。
+
+#### 18.4.2 解决方案
+
+**沙箱侧（工具 func）**：发 HTTP 请求时携带三个特殊请求头：
+
+```js
+const headers = {
+    'X-Internal-Source': 'pet-sandbox',
+    'X-Pet-UserId': $ctx.userId,
+    'X-Pet-WorkspaceId': $ctx.workspaceId
+}
+```
+
+**服务器侧（auth 中间件，`packages/server/src/index.ts`）**：在 whitelist 检查之后、JWT 检查之前新增一个分支：
+
+```ts
+} else if (req.headers['x-internal-source'] === 'pet-sandbox') {
+    const addr = req.socket?.remoteAddress ?? ''
+    const isLoopback = addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1'
+    const userId = req.headers['x-pet-userid'] as string
+    const workspaceId = req.headers['x-pet-workspaceid'] as string
+    if (isLoopback && userId && workspaceId) {
+        req.user = { id: userId, activeWorkspaceId: workspaceId, isOrganizationAdmin: true, permissions: [] }
+        return next()
+    }
+    return res.status(401).json({ error: 'Unauthorized Access' })
+}
+```
+
+**安全边界**：
+
+-   仅信任来自回环地址（`127.0.0.1` / `::1` / `::ffff:127.0.0.1`）的请求
+-   外部网络无法伪造此绕过（网络请求来源地址不可伪造）
+-   `isOrganizationAdmin: true` 使 `checkAnyPermission` 直接通过，无需维护权限列表
+
+---
+
+### 18.5 内置工具种子系统（Built-in Tool Seeding）
+
+#### 18.5.1 位置
+
+`packages/server/src/utils/pet/seedBuiltinTools.ts`
+
+服务器启动时（`initDatabase()` 之后）自动执行 `seedBuiltinPetTools(appDataSource)`。
+
+#### 18.5.2 种入逻辑
+
+```
+for each workspace:
+    for each BUILTIN_TOOLS entry:
+        查找 (name, workspaceId) 是否已存在
+        ├── 存在且 func/schema/description 有变化 → UPDATE（upsert）
+        ├── 存在且无变化 → 跳过
+        └── 不存在 → INSERT
+```
+
+**意义**：工具页面可见（因为工具按 workspaceId 过滤）；重启后自动同步最新版本，无需手动 DB 操作。
+
+#### 18.5.3 内置工具表
+
+| 工具名           | 颜色    | executor | 简介                       |
+| ---------------- | ------- | -------- | -------------------------- |
+| `tts`            | #FFD700 | client   | 朗读文字，支持多条循环播放 |
+| `schedule`       | #4DA3FF | server   | 创建/覆盖定时任务          |
+| `cancelSchedule` | #FF6B6B | server   | 按名称取消定时任务         |
+
+---
+
+### 18.6 卡片强化机制（Card Reinforcement）
+
+#### 18.6.1 重复投喂规则
+
+当用户重复投喂相同 `(input, output)` 组合时：
+
+1. 删除已有卡片
+2. 重新插入（新的 `createdDate`）
+
+**效果**：被多次强化的卡片拥有更新的 `createdDate`，在匹配得分相近时会优先浮出。
+
+#### 18.6.2 Matcher 排序规则
+
+```ts
+// matcher.ts — findTopMatches 内部排序
+matches.sort(
+    (a, b) =>
+        Math.abs(b.score - a.score) > 1e-6
+            ? b.score - a.score // 分数差异显著 → 按分数降序
+            : ts(b.createdDate) - ts(a.createdDate) // 分数相近 → 按时间降序（新卡优先）
+)
+```
+
+`textOverlapScore` 分值：精确匹配=1、包含关系=0.8–0.95、字符重叠 ≤0.7。
+
+---
+
+### 18.7 API 与 REST 汇总更新
+
+在 §12 基础上，v1.2/v1.3 新增：
+
+| Method | 路径                             | 权限                        | 说明                       |
+| ------ | -------------------------------- | --------------------------- | -------------------------- |
+| GET    | `/api/v1/pet/me/cards`           | `pet:view`                  | 分页查卡片，支持 type 过滤 |
+| POST   | `/api/v1/pet/me/schedules`       | `pet:teach` 或 `pet:update` | 创建/更新定时任务          |
+| GET    | `/api/v1/pet/me/schedules`       | `pet:view`                  | 列出当前宠物所有任务       |
+| DELETE | `/api/v1/pet/me/schedules/:name` | `pet:teach` 或 `pet:update` | 按名称取消任务             |
+
+---
+
 **文档结束**。更新记录：
 
 -   v1.0 (2026-04-20) 初版，"服务抽象"方案
 -   v1.1 (2026-04-20) 全面节点化改造，Provider 以 Flowise 节点形式存在
+-   v1.2 (2026-05-04) 实施记录：统一工具调用格式、Web Speech TTS、定时任务工具、双轴成长、卡片强化
+-   v1.3 (2026-05-04) 实施记录：内置工具种子系统、内部源认证绕过、配额从 Controller 下移到工具层

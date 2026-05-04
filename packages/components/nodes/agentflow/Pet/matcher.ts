@@ -4,6 +4,7 @@ export interface CardMatch {
     output: string
     cardType: string
     score: number
+    createdDate?: Date | string
 }
 
 function norm(v: number[]): number {
@@ -26,6 +27,7 @@ export interface StoredCard {
     output: string
     cardType: string
     embedding: string // serialized number[]
+    createdDate?: Date | string
 }
 
 function parseEmbedding(raw: string | null | undefined): number[] {
@@ -80,10 +82,17 @@ export function findTopMatches(
                 input: card.input,
                 output: card.output,
                 cardType: card.cardType,
-                score
+                score,
+                createdDate: card.createdDate
             })
         }
     }
-    scored.sort((a, b) => b.score - a.score)
+    // Sort by score DESC, then by createdDate DESC so reinforcement (re-feeding the
+    // correct answer) naturally outranks an older wrong card with the same input.
+    const ts = (d: Date | string | undefined): number => (d ? new Date(d).getTime() : 0)
+    scored.sort((a, b) => {
+        if (Math.abs(b.score - a.score) > 1e-6) return b.score - a.score
+        return ts(b.createdDate) - ts(a.createdDate)
+    })
     return scored.slice(0, topK)
 }

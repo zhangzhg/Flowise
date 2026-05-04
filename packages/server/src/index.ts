@@ -27,6 +27,7 @@ import { RedisEventSubscriber } from './queue/RedisEventSubscriber'
 import flowiseApiV1Router from './routes'
 import schedulerService from './services/schedules'
 import skillAutoBinder from './utils/pet/cron/SkillAutoBinder'
+import { seedBuiltinPetTools } from './utils/pet/seedBuiltinTools'
 import { UsageCacheManager } from './UsageCacheManager'
 import { getEncryptionKey, getNodeModulesPackagePath } from './utils'
 import { API_KEY_BLACKLIST_URLS, WHITELIST_URLS } from './utils/constants'
@@ -163,6 +164,10 @@ export class App {
             skillAutoBinder.init(this.AppDataSource)
             logger.info('🐾 [server]: Pet skill auto-binder initialized')
 
+            // Seed built-in pet tools (e.g. tts client-bridge)
+            await seedBuiltinPetTools(this.AppDataSource)
+            logger.info('🛠️ [server]: Pet built-in tools seeded')
+
             logger.info('🎉 [server]: All initialization steps completed successfully!')
         } catch (error) {
             logger.error('❌ [server]: Error during Data Source initialization:', error)
@@ -240,6 +245,18 @@ export class App {
                     const isWhitelisted = whitelistURLs.some((url) => req.path.startsWith(url))
                     if (isWhitelisted) {
                         next()
+                    } else if (req.headers['x-internal-source'] === 'pet-sandbox') {
+                        // Internal sandbox calls from the NodeVM tool executor (loopback only)
+                        const addr = req.socket?.remoteAddress ?? ''
+                        const isLoopback = addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1'
+                        const userId = req.headers['x-pet-userid'] as string
+                        const workspaceId = req.headers['x-pet-workspaceid'] as string
+                        if (isLoopback && userId && workspaceId) {
+                            // @ts-ignore
+                            req.user = { id: userId, activeWorkspaceId: workspaceId, isOrganizationAdmin: true, permissions: [] }
+                            return next()
+                        }
+                        return res.status(401).json({ error: 'Unauthorized Access' })
                     } else if (req.headers['x-request-from'] === 'internal') {
                         verifyToken(req, res, next)
                     } else {

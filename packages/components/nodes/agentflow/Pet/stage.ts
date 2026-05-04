@@ -2,22 +2,34 @@ export type PetStage = 'egg' | 'babble' | 'echo' | 'talk' | 'mature'
 
 export interface StageInfo {
     stage: PetStage
-    minCards: number
-    maxCards: number | null
+    minProgress: number
+    maxProgress: number | null
 }
 
+// progress = cardCount * 2 + chatTurns
+// Examples to reach each stage:
+//   babble : 1 card  OR  2  chat turns
+//   echo   : 20 cards OR  40 chat turns (~1 week active use)
+//   talk   : 100 cards OR 200 chat turns (~2-3 weeks)
+//   mature : 250 cards OR 500 chat turns (~1-2 months)
 const STAGE_TABLE: StageInfo[] = [
-    { stage: 'egg', minCards: 0, maxCards: 0 },
-    { stage: 'babble', minCards: 1, maxCards: 19 },
-    { stage: 'echo', minCards: 20, maxCards: 99 },
-    { stage: 'talk', minCards: 100, maxCards: 499 },
-    { stage: 'mature', minCards: 500, maxCards: null }
+    { stage: 'egg', minProgress: 0, maxProgress: 1 },
+    { stage: 'babble', minProgress: 2, maxProgress: 39 },
+    { stage: 'echo', minProgress: 40, maxProgress: 199 },
+    { stage: 'talk', minProgress: 200, maxProgress: 499 },
+    { stage: 'mature', minProgress: 500, maxProgress: null }
 ]
 
-export function deriveStage(cardCount: number): PetStage {
-    const safe = Number.isFinite(cardCount) && cardCount >= 0 ? Math.floor(cardCount) : 0
+export function deriveProgress(cardCount: number, chatTurns: number): number {
+    const c = Number.isFinite(cardCount) && cardCount >= 0 ? Math.floor(cardCount) : 0
+    const t = Number.isFinite(chatTurns) && chatTurns >= 0 ? Math.floor(chatTurns) : 0
+    return c * 2 + t
+}
+
+export function deriveStage(cardCount: number, chatTurns: number = 0): PetStage {
+    const progress = deriveProgress(cardCount, chatTurns)
     for (const row of STAGE_TABLE) {
-        if (safe >= row.minCards && (row.maxCards === null || safe <= row.maxCards)) {
+        if (progress >= row.minProgress && (row.maxProgress === null || progress <= row.maxProgress)) {
             return row.stage
         }
     }

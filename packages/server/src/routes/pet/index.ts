@@ -14,4 +14,9 @@ router.delete('/me', checkPermission('pet:delete'), petController.deleteMyPet)
 router.post('/me/cards', checkAnyPermission('pet:teach,pet:update'), petController.feedCard)
 router.get('/me/cards', checkPermission('pet:view'), petController.listCards)
 
+// Agent-created schedules (called by `schedule` tool from inside Pet flow)
+router.post('/me/schedules', checkAnyPermission('pet:teach,pet:update'), petController.createMySchedule)
+router.get('/me/schedules', checkPermission('pet:view'), petController.listMySchedules)
+router.delete('/me/schedules/:name', checkAnyPermission('pet:teach,pet:update'), petController.cancelMySchedule)
+
 export default router
