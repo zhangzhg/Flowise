@@ -100,11 +100,13 @@ export function buildToolSchemaSection(tools: ToolDef[]): string {
         '',
         '工具调用规则：',
         '• 用户要求"读/朗读/背/念"任何文字时，必须调用 tts 工具。',
-        '• speech 只写给用户的简短回应，禁止在 speech 中重复待朗读的内容。',
-        '• texts 填单词列表（每个单词只写一次），times 填重复次数，由工具自动循环。',
-        '• 示例：用户说"读3遍：cat、cap、net"，则输出：',
-        '  {"speech":"好的，我来读3遍","tool":{"name":"tts","params":{"texts":["cat","cap","net"],"times":3}}}',
-        '• 需要调用工具时，只输出上面格式的 JSON，不加任何前缀或多余文字。',
+        '• speech 只写给用户的简短回应（如"好的，我来读3遍"），禁止在 speech 中重复待朗读的内容。',
+        '• texts 填待朗读的文本列表，每项只出现一次；times 填重复次数，工具会自动循环。',
+        '  错误：texts:["cat","cap","cat","cap","cat","cap"], times:3 ← 不要展开重复！',
+        '  正确：texts:["cat","cap"], times:3',
+        '• 如果待朗读的是一句话，texts 填一个元素：texts:["the vet has ten big eggs"]',
+        '• 必须严格按以下 JSON 格式输出，不要加任何前缀、后缀或多余文字：',
+        '  {"speech":"好的，我来读3遍","tool":{"name":"tts","params":{"texts":["cat","cap"],"times":3}}}',
         '• 不需要工具时，直接回复普通文字，不要输出 JSON。'
     )
     return lines.join('\n')
@@ -147,14 +149,26 @@ function extractFirstJsonObject(text: string): string | null {
 }
 
 /**
- * Parse an LLM response into speech + optional toolCall. Three-layer fallback:
- *   1. direct JSON.parse
- *   2. extract first brace-balanced {...} block and JSON.parse
+ * Parse an LLM response into speech + optional toolCall. Multi-layer fallback:
+ *   1. direct JSON.parse  →  {"speech":"...","tool":{...}}
+ *   2. extract first {...} block:
+ *      a. try {"speech":"...","tool":{...}} inside extracted block
+ *      b. try {"tool":{...}} with preceding text as speech
+ *      c. try bare tool params: "toolName {...}" → toolCall with default speech
  *   3. plain text fallback (whole text becomes speech)
  */
 export function parseToolResponse(raw: string, tools: ToolDef[]): ParsedToolResponse {
     const trimmed = (raw || '').trim()
+    const result = parseCore(trimmed, tools)
+    if (result.toolCall?.name === 'tts') {
+        result.toolCall.params = normalizeTtsParams(result.toolCall.params)
+    }
+    return result
+}
+
+function parseCore(trimmed: string, tools: ToolDef[]): ParsedToolResponse {
     const lookupExecutor = (name: string) => tools.find((t) => t.name === name)?.executor ?? 'server'
+    const toolNames = new Set(tools.map((t) => t.name))
 
     const tryParse = (s: string): ParsedToolResponse | null => {
         try {
@@ -176,7 +190,6 @@ export function parseToolResponse(raw: string, tools: ToolDef[]): ParsedToolResp
     if (extracted) {
         const result = tryParse(extracted)
         if (result) return result
-        // LLM split speech (plain text before JSON) and tool-only JSON on separate lines
         try {
             const obj = JSON.parse(extracted)
             if (obj.tool?.name) {
@@ -188,9 +201,82 @@ export function parseToolResponse(raw: string, tools: ToolDef[]): ParsedToolResp
         } catch {
             /* not valid JSON or no tool field */
         }
+
+        // Fallback: "toolName {...}" pattern — LLM outputs raw tool call without wrapper
+        // e.g. 'tts {"texts":["cap","map"],"times":3}' or '好的，我来读3遍 tts {"texts":...}'
+        const jsonStart = trimmed.indexOf(extracted)
+        const beforeJson = jsonStart > 0 ? trimmed.slice(0, jsonStart).trim() : ''
+        for (const tName of toolNames) {
+            if (beforeJson === tName || beforeJson.endsWith(' ' + tName) || beforeJson.endsWith('\n' + tName)) {
+                try {
+                    const params = JSON.parse(extracted)
+                    if (typeof params === 'object' && params !== null) {
+                        const speechPrefix = beforeJson.replace(new RegExp(`\\s*${tName}\\s*$`), '').trim()
+                        return {
+                            speech: speechPrefix || '好的！',
+                            toolCall: { name: tName, params, executor: lookupExecutor(tName) }
+                        }
+                    }
+                } catch {
+                    /* not valid params JSON */
+                }
+            }
+        }
+
+        // Fallback: text starts with a known tool name followed by JSON
+        // e.g. 'tts {"texts":["hello"],"times":2}'
+        const toolNameMatch = trimmed.match(/^(\w+)\s*\{/)
+        if (toolNameMatch && toolNames.has(toolNameMatch[1])) {
+            try {
+                const params = JSON.parse(extracted)
+                if (typeof params === 'object' && params !== null) {
+                    return {
+                        speech: '好的！',
+                        toolCall: { name: toolNameMatch[1], params, executor: lookupExecutor(toolNameMatch[1]) }
+                    }
+                }
+            } catch {
+                /* not valid params JSON */
+            }
+        }
     }
 
     return { speech: trimmed }
+}
+
+/**
+ * Normalize TTS params: if LLM expanded texts with repetitions (e.g.
+ * ["cat","cap","cat","cap","cat","cap"] with times=3), deduplicate the
+ * pattern and set the correct times value.
+ */
+function normalizeTtsParams(params: Record<string, any>): Record<string, any> {
+    const texts = params.texts
+    if (!Array.isArray(texts) || texts.length <= 1) return params
+
+    const times = Math.max(1, Math.round(Number(params.times) || 1))
+
+    // Try to find a repeating pattern in the texts array
+    for (let patternLen = 1; patternLen <= Math.floor(texts.length / 2); patternLen++) {
+        const pattern = texts.slice(0, patternLen)
+        let isRepeating = true
+        for (let i = patternLen; i < texts.length; i++) {
+            if (texts[i] !== pattern[i % patternLen]) {
+                isRepeating = false
+                break
+            }
+        }
+        if (isRepeating && texts.length === patternLen * times) {
+            return { ...params, texts: pattern, times }
+        }
+        if (isRepeating) {
+            const repetitions = texts.length / patternLen
+            if (Number.isInteger(repetitions)) {
+                return { ...params, texts: pattern, times: repetitions }
+            }
+        }
+    }
+
+    return params
 }
 
 // ── Sandbox execution ────────────────────────────────────────────────────────

@@ -2333,8 +2333,14 @@ export const executeAgentFlow = async ({
     result.executionId = newExecution.id
     result.agentFlowExecutedData = agentFlowExecutedData
     if (apiMessage.action) result.action = JSON.parse(apiMessage.action)
-    const nodeWithToolCall = [...agentFlowExecutedData].reverse().find((d) => d.data?.output?.toolCall)
-    if (nodeWithToolCall) result.output = { content, toolCall: nodeWithToolCall.data.output.toolCall }
+    const nodeWithToolCall = [...agentFlowExecutedData].reverse().find((d) => {
+        const output = d.data?.output as ICommonObject | undefined
+        return output?.toolCall
+    })
+    if (nodeWithToolCall) {
+        const output = nodeWithToolCall.data.output as ICommonObject
+        result.output = { content, toolCall: output.toolCall }
+    }
 
     if (sessionId) result.sessionId = sessionId
 
