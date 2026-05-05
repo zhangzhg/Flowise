@@ -2333,6 +2333,8 @@ export const executeAgentFlow = async ({
     result.executionId = newExecution.id
     result.agentFlowExecutedData = agentFlowExecutedData
     if (apiMessage.action) result.action = JSON.parse(apiMessage.action)
+    const nodeWithToolCall = [...agentFlowExecutedData].reverse().find((d) => d.data?.output?.toolCall)
+    if (nodeWithToolCall) result.output = { content, toolCall: nodeWithToolCall.data.output.toolCall }
 
     if (sessionId) result.sessionId = sessionId
 

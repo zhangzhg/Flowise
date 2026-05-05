@@ -99,9 +99,12 @@ export function buildToolSchemaSection(tools: ToolDef[]): string {
     lines.push(
         '',
         '工具调用规则：',
-        '• 用户要求"读/朗读/背/念"任何文字时，必须调用 tts 工具，speech 只写简短回应，禁止在 speech 中重复待朗读的内容。',
-        '• 需要调用工具时，必须严格返回以下 JSON，不含任何其他文字：',
-        '  {"speech":"<简短回应>","tool":{"name":"<工具名>","params":{...}}}',
+        '• 用户要求"读/朗读/背/念"任何文字时，必须调用 tts 工具。',
+        '• speech 只写给用户的简短回应，禁止在 speech 中重复待朗读的内容。',
+        '• texts 填单词列表（每个单词只写一次），times 填重复次数，由工具自动循环。',
+        '• 示例：用户说"读3遍：cat、cap、net"，则输出：',
+        '  {"speech":"好的，我来读3遍","tool":{"name":"tts","params":{"texts":["cat","cap","net"],"times":3}}}',
+        '• 需要调用工具时，只输出上面格式的 JSON，不加任何前缀或多余文字。',
         '• 不需要工具时，直接回复普通文字，不要输出 JSON。'
     )
     return lines.join('\n')
@@ -110,9 +113,43 @@ export function buildToolSchemaSection(tools: ToolDef[]): string {
 // ── LLM response parsing ─────────────────────────────────────────────────────
 
 /**
+ * Extract the first brace-balanced JSON object from text.
+ * Handles nested objects/arrays and quoted strings correctly —
+ * unlike a lazy regex which stops at the first `}` inside a nested object.
+ */
+function extractFirstJsonObject(text: string): string | null {
+    const start = text.indexOf('{')
+    if (start === -1) return null
+    let depth = 0
+    let inString = false
+    let escape = false
+    for (let i = start; i < text.length; i++) {
+        const c = text[i]
+        if (escape) {
+            escape = false
+            continue
+        }
+        if (inString) {
+            if (c === '\\') escape = true
+            else if (c === '"') inString = false
+            continue
+        }
+        if (c === '"') {
+            inString = true
+            continue
+        }
+        if (c === '{') depth++
+        else if (c === '}') {
+            if (--depth === 0) return text.slice(start, i + 1)
+        }
+    }
+    return null
+}
+
+/**
  * Parse an LLM response into speech + optional toolCall. Three-layer fallback:
  *   1. direct JSON.parse
- *   2. extract first {...} block containing "speech"
+ *   2. extract first brace-balanced {...} block and JSON.parse
  *   3. plain text fallback (whole text becomes speech)
  */
 export function parseToolResponse(raw: string, tools: ToolDef[]): ParsedToolResponse {
@@ -135,10 +172,22 @@ export function parseToolResponse(raw: string, tools: ToolDef[]): ParsedToolResp
     const direct = tryParse(trimmed)
     if (direct) return direct
 
-    const match = trimmed.match(/\{[\s\S]*?"speech"[\s\S]*?\}/)
-    if (match) {
-        const extracted = tryParse(match[0])
-        if (extracted) return extracted
+    const extracted = extractFirstJsonObject(trimmed)
+    if (extracted) {
+        const result = tryParse(extracted)
+        if (result) return result
+        // LLM split speech (plain text before JSON) and tool-only JSON on separate lines
+        try {
+            const obj = JSON.parse(extracted)
+            if (obj.tool?.name) {
+                const jsonStart = trimmed.indexOf(extracted)
+                const speechBefore = jsonStart > 0 ? trimmed.slice(0, jsonStart).trim() : ''
+                const toolCall = { name: obj.tool.name, params: obj.tool.params ?? {}, executor: lookupExecutor(obj.tool.name) }
+                return { speech: speechBefore, toolCall }
+            }
+        } catch {
+            /* not valid JSON or no tool field */
+        }
     }
 
     return { speech: trimmed }

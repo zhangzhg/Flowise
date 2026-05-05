@@ -279,11 +279,11 @@ const PetPage = () => {
                 }
             })
             const answer = resp.data?.text || resp.data?.output?.content || resp.data?.answer || '...'
-            const toolCall = resp.data?.output?.toolCall
+            const toolCall = resp.data?.output?.toolCall ?? resp.data?.toolCall
             setChatHistory((h) => [...h, { role: 'assistant', content: answer }])
             if (toolCall?.executor === 'client' || (!toolCall?.executor && toolCall?.name)) {
                 executeTool(toolCall, { ttsHook: { settings: ttsSettings, speak } })
-            } else if (ttsSettings.autoPlay) {
+            } else if (ttsSettings.autoPlay && !toolCall) {
                 speak(answer)
             }
         } catch (e) {
