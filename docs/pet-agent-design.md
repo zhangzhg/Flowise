@@ -1082,7 +1082,8 @@ return JSON.stringify({
     times: 3,
     rate: 0.8,
     interval: 500
-})
+})
+// eslint-disable-next-line prettier/prettier
 ```
 
 PetCore 检测到 `__client_tool__` 字段后，自动转为 `executor:'client'` 的 toolCall 传给前端。**效果**：工具保存在服务端工具页面，但实际执行在浏览器 Web Speech API。
@@ -1154,7 +1155,8 @@ index.jsx
             if (gap > 0) await sleep(gap)
         }
     }
-}
+}
+// eslint-disable-next-line prettier/prettier
 ```
 
 每次朗读前 `synth.cancel()` 确保不叠加播放。
@@ -1238,7 +1240,8 @@ const headers = {
     'X-Internal-Source': 'pet-sandbox',
     'X-Pet-UserId': $ctx.userId,
     'X-Pet-WorkspaceId': $ctx.workspaceId
-}
+}
+// eslint-disable-next-line prettier/prettier
 ```
 
 **服务器侧（auth 中间件，`packages/server/src/index.ts`）**：在 whitelist 检查之后、JWT 检查之前新增一个分支：

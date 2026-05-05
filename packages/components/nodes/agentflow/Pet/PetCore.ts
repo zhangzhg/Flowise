@@ -135,7 +135,6 @@ class Pet_Agentflow implements INode {
                 name: 'petServerTools',
                 type: 'asyncMultiOptions',
                 loadMethod: 'listTools',
-                loadConfig: true,
                 optional: true,
                 description:
                     'Flowise tools the pet can invoke at mature stage. Tool descriptions and parameter schemas are loaded from the Tools page.'
@@ -271,11 +270,19 @@ class Pet_Agentflow implements INode {
         }
 
         const selectedRaw = nodeData.inputs?.petServerTools as string[] | string | undefined
-        const selectedToolIds = Array.isArray(selectedRaw)
-            ? selectedRaw
-            : typeof selectedRaw === 'string' && selectedRaw
-            ? [selectedRaw]
-            : []
+        let selectedToolIds: string[]
+        if (Array.isArray(selectedRaw)) {
+            selectedToolIds = selectedRaw
+        } else if (typeof selectedRaw === 'string' && selectedRaw) {
+            try {
+                const parsed = JSON.parse(selectedRaw)
+                selectedToolIds = Array.isArray(parsed) ? parsed : [selectedRaw]
+            } catch {
+                selectedToolIds = [selectedRaw]
+            }
+        } else {
+            selectedToolIds = []
+        }
 
         return {
             embeddingModelName: nodeData.inputs?.petEmbeddingModel as string,
