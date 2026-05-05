@@ -10,7 +10,8 @@ import { Workspace } from '../../enterprise/database/entities/workspace.entity'
 const BUILTIN_TOOLS: Array<Partial<Tool>> = [
     {
         name: 'tts',
-        description: '朗读文字。支持单条或多条循环朗读（如背单词）。',
+        description:
+            '【朗读工具】用户要求读出/朗读/背诵任何文字时必须调用。texts 为单词/句子列表，times 为重复次数（0=持续循环直到下一条消息），rate 为语速。',
         color: '#FFD700',
         iconSrc: '',
         schema: JSON.stringify([

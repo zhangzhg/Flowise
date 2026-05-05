@@ -9,15 +9,15 @@ export interface StageInfo {
 // progress = cardCount * 2 + chatTurns
 // Examples to reach each stage:
 //   babble : 1 card  OR  2  chat turns
-//   echo   : 20 cards OR  40 chat turns (~1 week active use)
-//   talk   : 100 cards OR 200 chat turns (~2-3 weeks)
-//   mature : 250 cards OR 500 chat turns (~1-2 months)
+//   echo   : 3 cards OR  6  chat turns
+//   talk   : 7 cards OR  14 chat turns
+//   mature : 10 cards OR 20 chat turns (tools enabled)
 const STAGE_TABLE: StageInfo[] = [
     { stage: 'egg', minProgress: 0, maxProgress: 1 },
-    { stage: 'babble', minProgress: 2, maxProgress: 39 },
-    { stage: 'echo', minProgress: 40, maxProgress: 199 },
-    { stage: 'talk', minProgress: 200, maxProgress: 499 },
-    { stage: 'mature', minProgress: 500, maxProgress: null }
+    { stage: 'babble', minProgress: 2, maxProgress: 5 },
+    { stage: 'echo', minProgress: 6, maxProgress: 13 },
+    { stage: 'talk', minProgress: 14, maxProgress: 19 },
+    { stage: 'mature', minProgress: 20, maxProgress: null }
 ]
 
 export function deriveProgress(cardCount: number, chatTurns: number): number {

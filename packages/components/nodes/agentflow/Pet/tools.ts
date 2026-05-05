@@ -98,10 +98,11 @@ export function buildToolSchemaSection(tools: ToolDef[]): string {
     }
     lines.push(
         '',
-        '需要调用工具时，必须严格返回以下 JSON，不能包含任何其他文字：',
-        '{"speech":"<对用户说的话>","tool":{"name":"<工具名>","params":{...}}}',
-        '',
-        '不需要工具时，直接回复普通文字，不要输出 JSON。'
+        '工具调用规则：',
+        '• 用户要求"读/朗读/背/念"任何文字时，必须调用 tts 工具，speech 只写简短回应，禁止在 speech 中重复待朗读的内容。',
+        '• 需要调用工具时，必须严格返回以下 JSON，不含任何其他文字：',
+        '  {"speech":"<简短回应>","tool":{"name":"<工具名>","params":{...}}}',
+        '• 不需要工具时，直接回复普通文字，不要输出 JSON。'
     )
     return lines.join('\n')
 }
