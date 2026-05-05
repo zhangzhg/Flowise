@@ -20,7 +20,7 @@ const BUILTIN_TOOLS: Array<Partial<Tool>> = [
                 description: '要朗读的文字列表，例如 ["cat","map","cap"]',
                 required: true
             },
-            { property: 'times', type: 'number', description: '整组循环次数，默认1', required: false },
+            { property: 'times', type: 'number', description: '整组循环次数，默认1；0=持续循环直到用户发下一条消息', required: false },
             { property: 'rate', type: 'number', description: '语速 0.5慢~2.0快，默认1.0', required: false },
             { property: 'interval', type: 'number', description: '相邻条目之间的间隔毫秒，默认300', required: false }
         ]),

@@ -1,6 +1,5 @@
 import { BaseChatModel } from '@langchain/core/language_models/chat_models'
-
-const DIM = 8
+import { PERSONALITY_DIM } from './constants'
 
 // Aligned with personalityVector convention in teachingParser.ts TRAIT_VECTORS
 const PROBE_PROMPT = (userText: string, petReply: string) => `\
@@ -29,15 +28,16 @@ Pet: "${petReply.slice(0, 300)}"
 Output ONLY the JSON array:`
 
 export async function probeConversationTraits(userText: string, petReply: string, chatModel: BaseChatModel): Promise<number[]> {
+    const zero = () => new Array(PERSONALITY_DIM).fill(0)
     try {
         const response = await chatModel.invoke([{ role: 'user', content: PROBE_PROMPT(userText, petReply) }])
         const text = typeof response.content === 'string' ? response.content.trim() : ''
         const match = text.match(/\[[\s\d.,\-+eE]+\]/)
-        if (!match) return new Array(DIM).fill(0)
+        if (!match) return zero()
         const arr = JSON.parse(match[0]) as unknown[]
-        if (!Array.isArray(arr) || arr.length !== DIM) return new Array(DIM).fill(0)
+        if (!Array.isArray(arr) || arr.length !== PERSONALITY_DIM) return zero()
         return arr.map((v) => Math.max(-1, Math.min(1, Number(v) || 0)))
     } catch {
-        return new Array(DIM).fill(0)
+        return zero()
     }
 }

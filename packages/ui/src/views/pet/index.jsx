@@ -53,7 +53,7 @@ import predictionApi from '@/api/prediction'
 import { v4 as uuidv4 } from 'uuid'
 import { PRESET_PACKS, getCardEmoji } from './presetCards'
 import { usePetTts } from './usePetTts'
-import { executeTool } from './toolExecutors'
+import { executeTool, cancelActiveTts } from './toolExecutors'
 
 const DRAG_MIME = 'application/x-pet-card'
 
@@ -257,6 +257,9 @@ const PetPage = () => {
     const handleChat = async () => {
         const text = chatInput.trim()
         if (!text || chatting) return
+
+        cancelActiveTts()
+        stop()
 
         if (!pet?.petFlowId) {
             enqueueSnackbar({ message: t('pet.noFlowLinked'), options: { variant: 'warning', key: Date.now() } })
