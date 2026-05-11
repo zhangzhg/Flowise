@@ -216,6 +216,28 @@ export interface ICard {
     createdDate: Date
 }
 
+export interface IPetChatMessage {
+    id: string
+    petId: string
+    chatId: string
+    role: string // 'user' | 'assistant'
+    content: string
+    consolidated: boolean
+    createdAt: Date
+}
+
+export interface IPetMemory {
+    id: string
+    petId: string
+    memoryType: string // 'episode' | 'trait' | 'preference' | 'fact'
+    summary: string
+    embedding: string // serialized number[]
+    importance: number
+    accessCount: number
+    lastAccessedAt?: Date
+    consolidatedAt: Date
+}
+
 export interface IExecution {
     id: string
     executionData: string

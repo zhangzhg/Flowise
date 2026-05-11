@@ -1247,7 +1247,7 @@ const headers = {
 **服务器侧（auth 中间件，`packages/server/src/index.ts`）**：在 whitelist 检查之后、JWT 检查之前新增一个分支：
 
 ```ts
-} else if (req.headers['x-internal-source'] === 'pet-sandbox') {
+if (req.headers['x-internal-source'] === 'pet-sandbox') {
     const addr = req.socket?.remoteAddress ?? ''
     const isLoopback = addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1'
     const userId = req.headers['x-pet-userid'] as string

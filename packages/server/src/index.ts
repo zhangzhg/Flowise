@@ -26,6 +26,7 @@ import { QueueManager } from './queue/QueueManager'
 import { RedisEventSubscriber } from './queue/RedisEventSubscriber'
 import flowiseApiV1Router from './routes'
 import schedulerService from './services/schedules'
+import memoryConsolidator from './utils/pet/cron/MemoryConsolidator'
 import skillAutoBinder from './utils/pet/cron/SkillAutoBinder'
 import { seedBuiltinPetTools } from './utils/pet/seedBuiltinTools'
 import { UsageCacheManager } from './UsageCacheManager'
@@ -163,6 +164,10 @@ export class App {
             // Initialize Pet Skill Auto Binder
             skillAutoBinder.init(this.AppDataSource)
             logger.info('🐾 [server]: Pet skill auto-binder initialized')
+
+            // Initialize Pet Memory Consolidator
+            memoryConsolidator.init(this.AppDataSource)
+            logger.info('🧠 [server]: Pet memory consolidator initialized')
 
             // Seed built-in pet tools (e.g. tts client-bridge)
             await seedBuiltinPetTools(this.AppDataSource)

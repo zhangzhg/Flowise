@@ -18,8 +18,10 @@ import { deriveStage, deriveLevel, PetStage } from './stage'
 import { applyTurnDrift, consolidateSession } from './personalityDrift'
 import { buildEggResponse, buildBabbleResponse, buildFewShotMessages, selectStagePrompt } from './responder'
 import { ToolCall, ToolCtx, ToolDef, buildToolCtx, buildToolDefs, executeServerTool, parseToolResponse } from './tools'
-import { detectScheduleTrigger } from './triggerDetector'
+import { detectScheduleTrigger, detectConsolidateTrigger } from './triggerDetector'
 import { buildTeachResponse } from './localizedResponses'
+import { consolidateMemories, decayAndRefresh } from './consolidator'
+import { retrieveMemories, buildMemorySection } from './memoryRetriever'
 import { TEACH_PERSONALITY_WEIGHT, ACTION_TOPK, ECHO_RECALL_TOPK, CHAT_RECALL_TOPK, ACTION_MATCH_THRESHOLD } from './constants'
 
 // ── Internal types ────────────────────────────────────────────────────────────
@@ -63,6 +65,8 @@ interface ChatContext {
     embeddings: Embeddings
     chatModel: BaseChatModel | undefined
     eventRepo: any
+    messageRepo: any
+    memoryRepo: any
     nodeData: INodeData
     chatId: string
     sseStreamer: IServerSideEventStreamer | undefined
@@ -198,6 +202,8 @@ class Pet_Agentflow implements INode {
         const eventRepo = databaseEntities['PetPersonalityEvent']
             ? appDataSource.getRepository(databaseEntities['PetPersonalityEvent'])
             : null
+        const messageRepo = databaseEntities['PetChatMessage'] ? appDataSource.getRepository(databaseEntities['PetChatMessage']) : null
+        const memoryRepo = databaseEntities['PetMemory'] ? appDataSource.getRepository(databaseEntities['PetMemory']) : null
 
         const pet = await petRepo.findOne({ where: { userId: inputs.userId } })
         if (!pet) throw new Error(`Pet not found for userId=${inputs.userId}. Please create a pet first.`)
@@ -210,7 +216,16 @@ class Pet_Agentflow implements INode {
         const { defs: petTools, map: toolEntityMap } = buildToolDefs(dbToolEntities)
         const toolCtx = buildToolCtx(options, inputs.userId)
 
-        await this.handleSessionChange(eventRepo, petRepo, pet, state.attrs, chatId)
+        // Background consolidation-only trigger from MemoryConsolidator cron
+        if (detectConsolidateTrigger(inputs.userText)) {
+            if (messageRepo && memoryRepo && chatModel) {
+                await consolidateMemories({ petId: pet.id, petName: pet.name, chatModel, embeddings, messageRepo, memoryRepo })
+                decayAndRefresh({ petId: pet.id, memoryRepo, petRepo, chatModel }).catch(() => {})
+            }
+            return this.buildReturn('', nodeData, inputs.userText)
+        }
+
+        await this.handleSessionChange(eventRepo, messageRepo, memoryRepo, embeddings, chatModel, petRepo, pet, state.attrs, chatId)
 
         const teaching = parseTeachingCommand(inputs.userText)
         if (teaching) {
@@ -239,6 +254,8 @@ class Pet_Agentflow implements INode {
             embeddings,
             chatModel,
             eventRepo,
+            messageRepo,
+            memoryRepo,
             nodeData,
             chatId,
             sseStreamer,
@@ -267,6 +284,12 @@ class Pet_Agentflow implements INode {
         if (trigger) {
             userText = trigger.prompt
             if (!userId && trigger.userId) userId = trigger.userId
+        }
+
+        // Consolidation-only trigger: extract userId but keep userText unchanged (marker for run())
+        const consolidateTrigger = detectConsolidateTrigger(userText)
+        if (consolidateTrigger && !userId) {
+            userId = consolidateTrigger.userId
         }
 
         const selectedRaw = nodeData.inputs?.petServerTools as string[] | string | undefined
@@ -317,12 +340,42 @@ class Pet_Agentflow implements INode {
         return { attrs, personalityVec: parseVec(pet.personalityVector) }
     }
 
-    private async handleSessionChange(eventRepo: any, petRepo: any, pet: any, attrs: Record<string, any>, chatId: string): Promise<void> {
-        if (!eventRepo || !chatId) return
+    private async handleSessionChange(
+        eventRepo: any,
+        messageRepo: any,
+        memoryRepo: any,
+        embeddings: Embeddings,
+        chatModel: BaseChatModel | undefined,
+        petRepo: any,
+        pet: any,
+        attrs: Record<string, any>,
+        chatId: string
+    ): Promise<void> {
+        if (!chatId) return
 
         const lastChatId = attrs._lastChatId as string | undefined
         if (lastChatId && lastChatId !== chatId) {
-            consolidateSession({ petId: pet.id, petRepo, eventRepo, sessionChatId: lastChatId }).catch(() => {})
+            // Personality drift consolidation (existing)
+            if (eventRepo) consolidateSession({ petId: pet.id, petRepo, eventRepo, sessionChatId: lastChatId }).catch(() => {})
+
+            // P1: Memory consolidation — trigger when session changes
+            if (messageRepo && memoryRepo && chatModel) {
+                consolidateMemories({
+                    petId: pet.id,
+                    petName: pet.name,
+                    chatModel,
+                    embeddings,
+                    messageRepo,
+                    memoryRepo
+                })
+                    .then((saved) => {
+                        if (saved > 0 && memoryRepo) {
+                            // P3/P4: decay + narrative refresh after new memories are saved
+                            decayAndRefresh({ petId: pet.id, memoryRepo, petRepo, chatModel }).catch(() => {})
+                        }
+                    })
+                    .catch(() => {})
+            }
         }
         if (lastChatId !== chatId) {
             attrs._lastChatId = chatId
@@ -377,6 +430,8 @@ class Pet_Agentflow implements INode {
             embeddings,
             chatModel,
             eventRepo,
+            messageRepo,
+            memoryRepo,
             nodeData,
             chatId,
             sseStreamer,
@@ -391,6 +446,13 @@ class Pet_Agentflow implements INode {
         const cardCount = state.attrs.cardCount || 0
         const chatTurns = state.attrs.chatTurns || 0
         const stage = deriveStage(cardCount, chatTurns)
+
+        // P1: Save user message asynchronously
+        if (messageRepo && chatId) {
+            messageRepo
+                .save(messageRepo.create({ petId: pet.id, chatId, role: 'user', content: userText, consolidated: false }))
+                .catch(() => {})
+        }
 
         // Increment chatTurns asynchronously — don't block response
         petRepo.update(pet.id, { attributes: JSON.stringify({ ...state.attrs, chatTurns: chatTurns + 1 }) }).catch(() => {})
@@ -421,11 +483,18 @@ class Pet_Agentflow implements INode {
             return this.respond(buildBabbleResponse(matches, language).text, nodeData, userText, chatId, sseStreamer, isLastNode)
         }
 
+        // P2: Retrieve memories for talk/mature stages
+        let memorySection = ''
+        if (memoryRepo && (stage === 'talk' || stage === 'mature')) {
+            const { highConf, midConf } = await retrieveMemories({ queryVec: queryEmbedding, petId: pet.id, memoryRepo })
+            memorySection = buildMemorySection(highConf, midConf)
+        }
+
         // Echo / Talk / Mature: LLM-driven
         const topMatches = findTopMatches(queryEmbedding, nonActionCards, CHAT_RECALL_TOPK, 0, userText)
         const recentVocab = await this.getRecentVocab(cardRepo, pet.id, 30)
         const messages: Array<{ role: string; content: string }> = [
-            { role: 'system', content: selectStagePrompt(stage, recentVocab, pet.personalityNarrative, petTools) },
+            { role: 'system', content: selectStagePrompt(stage, recentVocab, pet.personalityNarrative, petTools, memorySection) },
             ...buildFewShotMessages(topMatches),
             { role: 'user', content: userText }
         ]
@@ -443,6 +512,12 @@ class Pet_Agentflow implements INode {
             }
             sseStreamer.streamEndEvent(chatId)
             this.fireDriftAsync(eventRepo, userText, responseText, stage, chatModel, pet, petRepo, chatId)
+            // P1: Save assistant reply
+            if (messageRepo && chatId) {
+                messageRepo
+                    .save(messageRepo.create({ petId: pet.id, chatId, role: 'assistant', content: responseText, consolidated: false }))
+                    .catch(() => {})
+            }
             return this.buildReturn(responseText, nodeData, userText)
         }
 
@@ -453,10 +528,16 @@ class Pet_Agentflow implements INode {
         this.fireDriftAsync(eventRepo, userText, responseText, stage, chatModel, pet, petRepo, chatId)
 
         if (!hasTools) {
+            // P1: Save assistant reply
+            if (messageRepo && chatId) {
+                messageRepo
+                    .save(messageRepo.create({ petId: pet.id, chatId, role: 'assistant', content: responseText, consolidated: false }))
+                    .catch(() => {})
+            }
             return this.respond(responseText, nodeData, userText, chatId, sseStreamer, isLastNode)
         }
 
-        return await this.handleToolResponse(
+        const toolResult = await this.handleToolResponse(
             responseText,
             petTools,
             toolEntityMap,
@@ -467,6 +548,14 @@ class Pet_Agentflow implements INode {
             sseStreamer,
             isLastNode
         )
+        // P1: Save assistant reply (speech portion only, not the raw JSON)
+        if (messageRepo && chatId) {
+            const speechContent = (toolResult as any)?.output?.content ?? responseText
+            messageRepo
+                .save(messageRepo.create({ petId: pet.id, chatId, role: 'assistant', content: speechContent, consolidated: false }))
+                .catch(() => {})
+        }
+        return toolResult
     }
 
     private async handleToolResponse(

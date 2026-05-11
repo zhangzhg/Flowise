@@ -3,6 +3,10 @@ export interface TriggerContext {
     userId?: string
 }
 
+export interface ConsolidateTrigger {
+    userId: string
+}
+
 /**
  * Detect whether userText is a scheduler-fired trigger payload.
  *
@@ -24,6 +28,23 @@ export function detectScheduleTrigger(userText: string): TriggerContext | null {
             prompt: ctx.prompt.trim(),
             userId: typeof ctx.userId === 'string' ? ctx.userId : undefined
         }
+    } catch {
+        return null
+    }
+}
+
+/**
+ * Detect whether userText is a background memory-consolidation trigger
+ * sent by the server-side MemoryConsolidator cron.
+ */
+export function detectConsolidateTrigger(userText: string): ConsolidateTrigger | null {
+    const t = (userText || '').trim()
+    if (!t.startsWith('{')) return null
+    try {
+        const ctx = JSON.parse(t)
+        if (ctx?.__consolidate__ !== true) return null
+        if (typeof ctx.userId !== 'string' || !ctx.userId) return null
+        return { userId: ctx.userId }
     } catch {
         return null
     }

@@ -29,15 +29,15 @@ export function buildEchoSystemPrompt(recentVocab: string[], narrative: string |
     return `你是一只刚学会说话的 AI 宠物。${vocabSection}\n${personalitySection}\n用最简单的语言回应，不超过${maxChars}个字。`
 }
 
-export function buildTalkSystemPrompt(narrative: string | undefined): string {
+export function buildTalkSystemPrompt(narrative: string | undefined, memorySection: string = ''): string {
     const maxChars = STAGE_MAX_CHARS.talk
     const personality = narrative ?? '你是一只温和、友善、充满好奇心的 AI 宠物。'
-    return `你是一只 AI 宠物。${personality}\n用自然的语言回应用户，保持角色。不超过${maxChars}个字。`
+    return `你是一只 AI 宠物。${personality}${memorySection}\n用自然的语言回应用户，保持角色。不超过${maxChars}个字。`
 }
 
-export function buildMatureSystemPrompt(narrative: string | undefined, tools: ToolDef[] = []): string {
+export function buildMatureSystemPrompt(narrative: string | undefined, tools: ToolDef[] = [], memorySection: string = ''): string {
     const personality = narrative ?? '你是一只独特个性的 AI 宠物，有自己的想法和感受。'
-    return `你是一只成熟的 AI 宠物。${personality}\n自由表达，保持角色一致。${buildToolSchemaSection(tools)}`
+    return `你是一只成熟的 AI 宠物。${personality}${memorySection}\n自由表达，保持角色一致。${buildToolSchemaSection(tools)}`
 }
 
 export function buildFewShotMessages(matches: CardMatch[]): Array<{ role: string; content: string }> {
@@ -49,8 +49,14 @@ export function buildFewShotMessages(matches: CardMatch[]): Array<{ role: string
     return msgs
 }
 
-export function selectStagePrompt(stage: PetStage, recentVocab: string[], narrative?: string, tools: ToolDef[] = []): string {
+export function selectStagePrompt(
+    stage: PetStage,
+    recentVocab: string[],
+    narrative?: string,
+    tools: ToolDef[] = [],
+    memorySection: string = ''
+): string {
     if (stage === 'echo') return buildEchoSystemPrompt(recentVocab, narrative)
-    if (stage === 'mature') return buildMatureSystemPrompt(narrative, tools)
-    return buildTalkSystemPrompt(narrative)
+    if (stage === 'mature') return buildMatureSystemPrompt(narrative, tools, memorySection)
+    return buildTalkSystemPrompt(narrative, memorySection)
 }

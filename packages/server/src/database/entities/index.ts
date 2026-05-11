@@ -19,6 +19,8 @@ import { CustomTemplate } from './CustomTemplate'
 import { Execution } from './Execution'
 import { Pet } from './Pet'
 import { Card } from './Card'
+import { PetChatMessage } from './PetChatMessage'
+import { PetMemory } from './PetMemory'
 import { FlowSchedule } from './FlowSchedule'
 import { IntentSkillBinding } from './IntentSkillBinding'
 import { LoginActivity, WorkspaceShared, WorkspaceUsers } from '../../enterprise/database/entities/EnterpriseEntities'
@@ -57,6 +59,8 @@ export const entities = {
     Execution,
     Pet,
     Card,
+    PetChatMessage,
+    PetMemory,
     FlowSchedule,
     IntentSkillBinding,
     Organization,

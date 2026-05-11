@@ -190,3 +190,21 @@ my-skill.zip
 
 -   支持 python 技能包
     冷启动每次约 1–2s，热路径再快。如果未来要解决冷启动，可以考虑 sandbox 池化，但目前先保持简单。
+
+## BGE-Small-Zh docker
+
+```bash
+docker pull flowise/bge-small-zh:latest
+
+# 1. 拉取并运行 TEI 服务
+docker run -d --name bge-small-zh -p 8081:80 -v D:\data\bge-cache:/data ghcr.io/huggingface/text-embeddings-inference:cpu-latest --model-id BAAI/bge-small-zh-v1.5
+
+# 2. 验证服务是否启动成功
+docker logs bge-small-zh
+
+# 测试 embedding 接口
+Invoke-RestMethod -Uri "http://localhost:8081/embed" `
+  -Method POST `
+  -ContentType "application/json" `
+  -Body '{"inputs": ["你好，世界"]}'
+```
