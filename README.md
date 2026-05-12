@@ -1,17 +1,23 @@
-## 基于 Flowise 进行二次开发
+## 宠物智能体
+<h3>基于 Flowise 进行二次开发并汉化</h3>
+1. 流程编排
+![alt text](image.png)
 
-<h3>Build AI Agents, Visually</h3>
-<a href="https://github.com/FlowiseAI/Flowise">
-<img width="100%" src="https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_agentflow.gif?raw=true"></a>
+2. 宠物问答
+在 Flowise 上构建一只"有成长记忆的 AI 宠物"：从完全白纸出生，通过用户喂食**卡片**学习词汇/动作/风格，逐步涌现个性；达到一定程度后自动匹配并装配技能，最终成长为带独立人格、可调用工具、具备皮肤与语音的智能体。性格向量（8 维）：
 
-## 📚 Table of Contents
+| 索引 | 负向 ← 正向   | 含义      |
+| ---- | ------------- | --------- |
+| 0    | 活泼 ← → 沉稳 | 能量/节奏 |
+| 1    | 好奇 ← → 谨慎 | 探索意愿  |
+| 2    | 温和 ← → 直接 | 沟通风格  |
+| 3    | 创意 ← → 务实 | 思维偏好  |
+| 4    | 外向 ← → 内省 | 社交倾向  |
+| 5    | 玩心 ← → 严肃 | 幽默感    |
+| 6    | 共情 ← → 理性 | 情感取向  |
+| 7    | 顺从 ← → 主见 | 自主性    |
 
--   [⚡ Quick Start](#-quick-start)
--   [🐳 Docker](#-docker)
--   [👨‍💻 Developers](#-developers)
--   [🌱 Env Variables](#-env-variables)
--   [📖 Documentation](#-documentation)
--   [📄 License](#-license)
+
 
 ## ⚡Quick Start
 
@@ -29,16 +35,6 @@ Download and Install [NodeJS](https://nodejs.org/en/download) >= 18.15.0
 
 3. Open [http://localhost:3000](http://localhost:3000)
 
-## 🐳 Docker
-
-### Docker Compose
-
-1. Clone the Flowise project
-2. Go to `docker` folder at the root of the project
-3. Copy `.env.example` file, paste it into the same location, and rename to `.env` file
-4. `docker compose up -d`
-5. Open [http://localhost:3000](http://localhost:3000)
-6. You can bring the containers down by `docker compose stop`
 
 ### Docker Image
 

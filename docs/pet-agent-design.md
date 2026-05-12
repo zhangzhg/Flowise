@@ -1,6 +1,6 @@
 # Pet Agent System — 详细设计文档
 
-**版本** v1.3 · **状态** 持续开发 · **项目** Flowise 扩展 · **最后更新** 2026-05-04
+**版本** v1.5 · **状态** 持续开发 · **项目** Flowise 扩展 · **最后更新** 2026-05-11
 
 > v1.1 相对 v1.0 的关键变更：**全面节点化**。Provider 不再是后端服务单例，而是 Flowise 画布上的节点；Pet 业务逻辑拆成一组自定义节点，可自由拼装；同时保留 `PetCore` 聚合节点给"零配置党"。
 
@@ -27,6 +27,7 @@
 -   [16. 风险与开放问题](#16-风险与开放问题)
 -   [17. 附录](#17-附录)
 -   [18. 已实施功能详细设计](#18-已实施功能详细设计)
+-   [19. 基于 Agentflow 的 Pet 智能体化改造（Phase 7+）](#19-基于-agentflow-的-pet-智能体化改造phase-7)
 
 ---
 
@@ -1339,9 +1340,233 @@ matches.sort(
 
 ---
 
+---
+
+## 19. 基于 Agentflow 的 Pet 智能体化改造（Phase 7+）
+
+> 本章是 §8 节点化架构的延伸，专门讨论将 Pet 从"单体节点"重构为"agentflow 画布组合"的改造方案。Think→Execute→Analyze 的循环由 agentflow 标准节点原生承载，Pet 特有逻辑收敛到 4 个薄节点。
+
+### 19.1 改造动机
+
+当前 `PetCore.ts` 是一个**单体节点**，将以下职责全部内嵌在一个 `run()` 方法中：
+
+```
+1. 模型实例化      Embeddings + ChatModel
+2. Pet 状态加载    DB → attrs / personalityVec
+3. 触发器识别      schedule / consolidate / teaching / chat
+4. Stage 路由      egg / babble / echo / talk / mature
+5. 教学流          parse → embed → save card → update vec
+6. 对话流          recall → memory → LLM → tool → stream
+7. 异步副作用      drift / messageSave / consolidate
+```
+
+**问题**：
+
+-   任何新行为都需要修改 `PetCore.ts`，扩展代价高
+-   Think→Execute→Analyze 循环是隐式的，不可视、不可复用
+-   LLM/Tool/Loop 等通用基础设施被绕开，重复实现
+
+### 19.2 现有 Agentflow 节点的复用映射
+
+| agentflow 节点        | Pet 的对应需求                         |  可直接复用   |
+| --------------------- | -------------------------------------- | :-----------: |
+| `LLM`                 | echo/talk 阶段的大脑                   |      ✅       |
+| `Agent`（ReAct）      | mature 阶段 Think→Execute→Analyze 循环 |      ✅       |
+| `Tool`                | 服务端工具执行                         |      ✅       |
+| `Condition`           | 基于 stage 的确定性路由                |      ✅       |
+| `ConditionAgent`      | 语义触发类型识别                       |      ✅       |
+| `Loop`                | ReAct 工具循环回路                     |      ✅       |
+| `DirectReply`         | egg/babble/teach 直接返回              |      ✅       |
+| `Schedule`            | 定时触发                               |  ✅（已有）   |
+| `CustomFunction`      | Pet 特有的少量计算逻辑                 |      ✅       |
+| Pet 状态加载/写回     | DB 实体访问                            | ❌ 需新建节点 |
+| 向量召回（Cards）     | 余弦相似度 recall                      | ❌ 需新建节点 |
+| 记忆检索（PetMemory） | RAG 注入                               | ❌ 需新建节点 |
+| 性格漂移计算          | 向量更新                               | ❌ 需新建节点 |
+
+**结论**：约 60% 的核心基础设施可直接复用。Pet 特有的只有 **4 个薄节点**需要新建。
+
+### 19.3 目标架构：可视化 Agentflow 拓扑
+
+```
+Start
+  │
+  ▼
+PetContext ──────────────── 自定义节点（薄）
+  │  · 加载 Pet 实体，注入 flowState
+  │  · 识别 triggerType（consolidate/teach/chat）
+  │  · 确定 stage、language、petId、personalityNarrative
+  │
+  ▼
+Condition（基于 flowState.triggerType + flowState.stage）
+  │
+  ├─ consolidate ──▶ CustomFunction(consolidateMemories) ──▶ DirectReply('')
+  │
+  ├─ teach ─────────▶ PetTeach（自定义节点） ─────────────▶ DirectReply
+  │
+  ├─ egg ──────────────────────────────────────────────────▶ DirectReply
+  │
+  ├─ babble ─────────▶ PetCardRecaller ────────────────────▶ DirectReply
+  │
+  ├─ talk ──┐
+  │         ▼
+  └─ mature ┤
+            │
+            ▼
+       PetCardRecaller ─── few-shot messages ───┐
+       PetMemoryRetriever ── memorySection ──────┤
+                                                 ▼
+                               LLM（talk）    ← system prompt 由 flowState 变量组装
+                               Agent（mature）← 带 Tool 节点的 ReAct 循环
+                                 │   ↑
+                                 │   └─ Loop（Think→Execute→Analyze 回路）
+                                 │
+                                 ▼
+                          PetStateUpdater（自定义节点，异步副作用）
+                          · 保存 PetChatMessage
+                          · 触发 personalityDrift（fire-and-forget）
+                          · 更新 chatTurns / hunger
+                                 │
+                                 ▼
+                          DirectReply / 框架原生流式输出
+```
+
+**Think→Execute→Analyze 循环**就是 `Agent` 节点的 ReAct 循环，已经完整实现，Pet 直接复用，无需自行实现。
+
+### 19.4 需要新建的 4 个自定义节点
+
+#### `PetContext`（入口，必须）
+
+```
+职责：Pet 状态加载 + 触发器识别
+输入：userId (string), userText (string)
+输出：flowState {
+    petId, stage, language, triggerType,
+    personalityNarrative, petFlowId,
+    cardCount, chatTurns
+}
+DB 访问：Pet 实体
+触发器类型：
+    'consolidate' — detectConsolidateTrigger() 命中
+    'teach'       — parseTeachingCommand() 命中
+    'chat'        — 普通对话（按 stage 进一步路由）
+```
+
+#### `PetCardRecaller`（召回，必须）
+
+```
+职责：对 userText 做 embedding，在 Card 表余弦召回
+输入：userText, petId（来自 flowState）, topK
+输出：
+    flowState.fewShotMessages   — 注入下游 LLM messages
+    flowState.actionMatch?      — action 卡命中时用于 DirectReply
+DB 访问：Card 实体
+Embeddings：从节点输入参数注入（与 PetContext 共享实例）
+```
+
+#### `PetMemoryRetriever`（记忆，P2 已有逻辑复用）
+
+```
+职责：向量化查询 PetMemory，返回分层记忆注入 system prompt
+输入：userText, petId
+输出：flowState.memorySection（字符串，注入 LLM system prompt）
+DB 访问：PetMemory 实体
+阈值：CERTAIN=0.75（直接注入）/ PROBABLE=0.55（参考性注入）
+```
+
+#### `PetStateUpdater`（状态写回，必须）
+
+```
+职责：响应生成后的异步副作用汇总，不阻塞主链
+输入：userText, replyText, petId（来自 flowState）
+副作用（全部 fire-and-forget）：
+    · 保存 PetChatMessage（user + assistant 两条）
+    · applyTurnDrift — 人格漂移
+    · petRepo.update — chatTurns + 1, hunger 衰减
+DB 访问：Pet + PetChatMessage + PetPersonalityEvent
+```
+
+### 19.5 关键技术解法
+
+#### 19.5.1 FlowState 承载复杂对象
+
+`updateFlowState` 设计为简单 KV 字符串对，`personalityVector`（高维 float 数组）和 `fewShotMessages`（消息数组）须序列化后存入：
+
+```ts
+// PetCardRecaller 输出
+updateFlowState([
+    { key: 'fewShotMessages', value: JSON.stringify(fewShotMsgs) },
+    { key: 'memorySection', value: memorySection }
+])
+
+// LLM 节点 messages 输入，通过变量插值取用
+// 下游 CustomFunction 节点先 JSON.parse({{ fewShotMessages }}) 再传入
+```
+
+#### 19.5.2 Stage 条件 System Prompt 构造
+
+LLM 节点的 `system` 消息支持 `{{ variable }}` 插值。`selectStagePrompt` 的输出由 `PetCardRecaller` + `PetMemoryRetriever` 写入 `flowState.systemPrompt`，直接注入 LLM 节点——无需修改 LLM 节点本身：
+
+```
+PetCardRecaller → flowState.systemPrompt = selectStagePrompt(stage, vocab, narrative, tools, memorySection)
+LLM system 消息: {{ systemPrompt }}
+```
+
+#### 19.5.3 客户端工具桥保持不变
+
+TTS / action 等 client 工具通过 `__client_tool__` 标记从服务端传到前端，这属于 Pet 前端协议，与 agentflow 节点无关。`PetStateUpdater` 或 `DirectReply` 节点的输出携带此标记，前端 `index.jsx` 照常解析。
+
+#### 19.5.4 Embeddings 共享
+
+`PetContext` 实例化 Embeddings 模型后，将实例存入 `options.cachePool`（以 `petId_emb` 为 key），下游 `PetCardRecaller` 和 `PetMemoryRetriever` 优先从 cache 取用，避免同一请求内重复实例化：
+
+```ts
+// PetContext
+const cacheKey = `pet_emb_${petId}`
+if (!cachePool.get(cacheKey)) {
+    cachePool.set(cacheKey, embeddingsInstance)
+}
+// PetCardRecaller
+const embeddings = cachePool.get(`pet_emb_${flowState.petId}`) ?? await instantiate(...)
+```
+
+#### 19.5.5 教学流的异类性处理
+
+教学命令没有 LLM 调用（纯 DB 操作）。`PetTeach` 节点封装 `parseTeachingCommand + embed + cardRepo.save + petRepo.update`，对外是黑盒，执行完直接连 `DirectReply`，完全绕开 LLM/Agent 节点。这是 agentflow 里最"非自然"的分支，但封装后对画布用户透明。
+
+### 19.6 可行性结论
+
+| 维度         | 评估                                                                         |
+| ------------ | ---------------------------------------------------------------------------- |
+| 技术可行性   | 高。agentflow 运行时完全支持，无需框架改动                                   |
+| 复用比例     | ~60% 逻辑（LLM/Agent/Tool/Loop/Condition 全部复用）                          |
+| 新增工作量   | 4 个自定义节点，约 500–700 行代码                                            |
+| 可扩展性收益 | 高。新增工具/行为只需画布操作，无需改代码                                    |
+| 调试可观测性 | 明显提升。每个节点的输入输出在 canvas 上可见                                 |
+| 性能影响     | 轻微增加（节点间 flowState 序列化开销），可忽略                              |
+| 主要风险     | Embeddings 实例共享机制需要 cachePool 支持；flowState 数据量过大时序列化开销 |
+
+**推荐方案**：保留 Pet 特有的 4 个薄节点（Context / CardRecaller / MemoryRetriever / StateUpdater），其余全部改为 agentflow 标准节点的组合。整体流程发布为**可视化 agentflow 模板**，用户可在画布上克隆和扩展，不需要触碰代码。
+
+Think→Execute→Analyze 的循环直接用 `Agent` + `Loop` 节点实现——**这正是 agentflow 的设计意图，Pet 不需要自己实现这个循环**。
+
+在画布上的连接方式
+
+PetContext (6 输出)
+├─ consolidate → CustomFunction(consolidateMemories) → DirectReply
+├─ teach → CustomFunction(teach 逻辑) → DirectReply
+├─ egg → DirectReply({{ petResponse }})
+├─ babble → PetCardRecaller → DirectReply({{ petResponse }})
+├─ llm → PetCardRecaller → PetMemoryRetriever → LLM(system={{ systemPrompt }}, user={{ userText }}) → PetStateUpdater
+└─ agent → PetCardRecaller → PetMemoryRetriever → Agent(tools...) → PetStateUpdater
+
+---
+
 **文档结束**。更新记录：
 
 -   v1.0 (2026-04-20) 初版，"服务抽象"方案
 -   v1.1 (2026-04-20) 全面节点化改造，Provider 以 Flowise 节点形式存在
 -   v1.2 (2026-05-04) 实施记录：统一工具调用格式、Web Speech TTS、定时任务工具、双轴成长、卡片强化
 -   v1.3 (2026-05-04) 实施记录：内置工具种子系统、内部源认证绕过、配额从 Controller 下移到工具层
+-   v1.4 (2026-05-10) 个性记忆系统设计：RAG + 记忆固化架构（Phase 6+）
+-   v1.5 (2026-05-11) 基于 Agentflow 的 Pet 智能体化改造分析（Phase 7+）
