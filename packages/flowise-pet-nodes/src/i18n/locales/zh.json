@@ -31,6 +31,16 @@
             "label": "宠物记忆检索器",
             "description": "通过余弦相似度检索相关 PetMemory 记录，然后为下游 LLM / Agent 节点构建完整的系统提示（阶段 + 记忆 + 少样本示例）。"
         },
+        "petCardSaver": {
+            "label": "宠物卡片保存器",
+            "description": "教学分支终端节点。直接将 parsedTeach 卡片写入数据库，并返回确认消息，无需 HTTP 请求。",
+            "inputs": {
+                "petCardEmbeddingModel": "嵌入模型（可选）"
+            },
+            "descriptions": {
+                "petCardEmbeddingModelDesc": "推荐配置 — 为卡片输入生成向量，使 PetCardRecaller 能按相似度匹配该卡片。不配置时退回文本重叠匹配。"
+            }
+        },
         "petStateUpdater": {
             "label": "宠物状态更新器",
             "description": "LLM/Agent 分支的终端节点。保存 PetChatMessage，触发性格漂移和可选的记忆整合（均为即发即忘），然后流式输出回复。",

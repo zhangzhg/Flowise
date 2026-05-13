@@ -1766,6 +1766,9 @@ export const executeJavaScriptCode = async (
         }
         secureWrappers['node-fetch'] = secureNodeFetch
 
+        // Expose secure fetch as a global so scripts can call fetch() directly
+        sandbox['fetch'] = secureNodeFetch
+
         const defaultNodeVMOptions: any = {
             console: 'inherit',
             sandbox,

@@ -167,6 +167,14 @@ class CustomFunction_Agentflow implements INode {
             additionalSandbox[`$${variableName}`] = variableValue
         }
 
+        // Inject $ctx with server-side context (baseURL, userId, workspaceId)
+        const overrideConfig = (options.overrideConfig ?? {}) as ICommonObject
+        additionalSandbox['$ctx'] = {
+            baseURL: (options.baseURL as string) || '',
+            userId: ((state?.userId as string) || (overrideConfig.petUserId as string) || '').trim(),
+            workspaceId: (options.workspaceId as string) || ''
+        }
+
         const sandbox = createCodeExecutionSandbox(input, variables, flow, additionalSandbox)
 
         // Setup streaming function if needed

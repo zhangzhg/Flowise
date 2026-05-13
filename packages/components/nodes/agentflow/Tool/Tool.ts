@@ -278,7 +278,9 @@ class Tool_Agentflow implements INode {
             sessionId: options.sessionId,
             chatId: options.chatId,
             input: input,
-            state: options.agentflowRuntime?.state
+            state: options.agentflowRuntime?.state,
+            baseURL: options.baseURL,
+            workspaceId: options.workspaceId
         }
 
         try {

@@ -119,6 +119,14 @@ export class DynamicStructuredTool<
             }
         }
 
+        // Inject $ctx with server-side context (used by built-in pet tools and custom scripts)
+        const state = (flowConfig?.state ?? {}) as ICommonObject
+        additionalSandbox['$ctx'] = {
+            baseURL: (flowConfig as any)?.baseURL || '',
+            userId: (state.userId as string) || '',
+            workspaceId: (flowConfig as any)?.workspaceId || ''
+        }
+
         // Prepare flow object for sandbox
         const flow = this.flowObj ? { ...this.flowObj, ...flowConfig } : {}
 

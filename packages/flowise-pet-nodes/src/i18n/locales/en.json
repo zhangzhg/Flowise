@@ -31,6 +31,16 @@
             "label": "Pet Memory Retriever",
             "description": "Retrieves relevant PetMemory records via cosine similarity, then builds the complete system prompt (stage + memory + few-shot examples) for the downstream LLM / Agent node."
         },
+        "petCardSaver": {
+            "label": "Pet Card Saver",
+            "description": "Terminal node for the teach branch. Saves the parsedTeach card directly to the DB and returns a confirmation message — no HTTP request needed.",
+            "inputs": {
+                "petCardEmbeddingModel": "Embedding Model (optional)"
+            },
+            "descriptions": {
+                "petCardEmbeddingModelDesc": "Recommended — generates a vector for the card input so PetCardRecaller can match it by similarity. Falls back to text-overlap matching if omitted."
+            }
+        },
         "petStateUpdater": {
             "label": "Pet State Updater",
             "description": "Terminal node for LLM/Agent branches. Saves PetChatMessages, triggers personality drift and optional memory consolidation (all fire-and-forget), then streams the reply.",
