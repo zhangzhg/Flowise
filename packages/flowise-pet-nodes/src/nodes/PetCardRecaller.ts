@@ -28,7 +28,7 @@ class PetCardRecaller_Agentflow implements INode {
         this.name = 'petCardRecallerAgentflow'
         this.version = 1.0
         this.type = 'PetCardRecaller'
-        this.category = 'Agent Flows'
+        this.category = 'Pet'
         this.icon = 'Pet.svg'
         this.description =
             'Embeds user input and recalls matching Cards (vocab/phrase/action). ' +

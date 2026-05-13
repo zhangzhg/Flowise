@@ -22,7 +22,8 @@ export function useFlowNodes() {
             try {
                 const allNodes = await nodesApi.getAllNodes()
                 // Filter to only agentflow nodes
-                agentflowNodes = allNodes.filter((node) => node.category === 'Agent Flows')
+                const AGENTFLOW_CATEGORIES = ['Agent Flows', 'Pet']
+                agentflowNodes = allNodes.filter((node) => AGENTFLOW_CATEGORIES.includes(node.category ?? ''))
             } catch (err) {
                 console.warn('[Agentflow] Failed to load nodes from API:', err)
                 setError(err instanceof Error ? err : new Error('Failed to load nodes'))

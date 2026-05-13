@@ -39,7 +39,7 @@ class PetContext_Agentflow implements INode {
         this.name = 'petContextAgentflow'
         this.version = 1.0
         this.type = 'PetContext'
-        this.category = 'Agent Flows'
+        this.category = 'Pet'
         this.icon = 'Pet.svg'
         this.description = 'Loads Pet state from DB, detects trigger type, and routes to the correct downstream branch'
         this.color = '#FFD700'

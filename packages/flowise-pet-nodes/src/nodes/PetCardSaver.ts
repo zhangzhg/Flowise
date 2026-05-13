@@ -28,7 +28,7 @@ class PetCardSaver_Agentflow implements INode {
         this.name = 'petCardSaverAgentflow'
         this.version = 1.0
         this.type = 'PetCardSaver'
-        this.category = 'Agent Flows'
+        this.category = 'Pet'
         this.icon = 'Pet.svg'
         this.description =
             'Teach branch terminal: saves the parsedTeach card directly to the database ' +

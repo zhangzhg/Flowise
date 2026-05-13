@@ -279,7 +279,7 @@ const AddNodes = ({ nodesData, node, isAgentCanvas, isAgentflowv2, onFlowGenerat
             const filteredResult = {}
             for (const category in result) {
                 if (isAgentCanvasV2) {
-                    if (category !== 'Agent Flows') {
+                    if (category !== 'Agent Flows' && category !== 'Pet') {
                         continue
                     }
                 } else {
@@ -306,6 +306,7 @@ const AddNodes = ({ nodesData, node, isAgentCanvas, isAgentflowv2, onFlowGenerat
             accordianCategories['Sequential Agents'] = true
             accordianCategories['Memory'] = true
             accordianCategories['Agent Flows'] = true
+            accordianCategories['Pet'] = true
             setCategoryExpanded(accordianCategories)
         } else {
             const taggedNodes = groupByTags(nodes, newTabValue)

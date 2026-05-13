@@ -1,6 +1,9 @@
 ## 宠物智能体
 
 <h3>基于 Flowise 进行二次开发并汉化</h3>
+
+[English](README.md) | [简体中文](README.zh.md)
+
 1. 流程编排
 
 ![alt text](image.png)

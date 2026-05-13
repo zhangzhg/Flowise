@@ -29,7 +29,7 @@ class PetStateUpdater_Agentflow implements INode {
         this.name = 'petStateUpdaterAgentflow'
         this.version = 1.0
         this.type = 'PetStateUpdater'
-        this.category = 'Agent Flows'
+        this.category = 'Pet'
         this.icon = 'Pet.svg'
         this.description =
             'Terminal node for LLM/Agent branches. Saves PetChatMessages, triggers personality drift ' +

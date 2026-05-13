@@ -107,7 +107,6 @@ Flowise/                                  # 项目根目录（Monorepo）
 │   │       ├── controllers/              # 路由控制器（按功能模块划分）
 │   │       │   ├── chatflows/            # 聊天流 CRUD
 │   │       │   ├── credentials/          # 凭证管理
-│   │       │   ├── chatflows/            # 对话流
 │   │       │   ├── documentstore/        # 文档存储
 │   │       │   ├── evaluations/          # 评测任务
 │   │       │   ├── evaluators/           # 评测器
@@ -115,6 +114,8 @@ Flowise/                                  # 项目根目录（Monorepo）
 │   │       │   ├── apikey/               # API 密钥
 │   │       │   ├── assistants/           # AI 助手
 │   │       │   ├── dataset/              # 数据集
+│   │       │   ├── pet/                  # 宠物管理控制器
+│   │       │   ├── plugins/              # 插件管理控制器
 │   │       │   └── ...                   # 其他控制器
 │   │       ├── services/                 # 业务逻辑层（对应 controllers）
 │   │       │   ├── chatflows/            # 聊天流业务逻辑
@@ -123,11 +124,20 @@ Flowise/                                  # 项目根目录（Monorepo）
 │   │       │   ├── evaluations/          # 评测业务逻辑
 │   │       │   ├── leads/                # 线索管理
 │   │       │   ├── log/                  # 日志服务
+│   │       │   ├── pet/                  # 宠物业务逻辑
+│   │       │   ├── plugins/              # 插件业务逻辑
 │   │       │   └── ...                   # 其他服务
 │   │       ├── database/
 │   │       │   ├── entities/             # TypeORM 实体（数据表映射）
+│   │       │   │   ├── Pet.ts            # 宠物实体
+│   │       │   │   ├── Card.ts           # 宠物卡片实体
+│   │       │   │   ├── Plugin.ts         # 插件实体
+│   │       │   │   └── ...               # 其他实体
 │   │       │   └── migrations/           # 数据库迁移文件
 │   │       ├── routes/                   # Express 路由注册
+│   │       │   ├── pet/                  # 宠物 API 路由
+│   │       │   ├── plugins/              # 插件 API 路由
+│   │       │   └── ...                   # 其他路由
 │   │       ├── middlewares/              # 中间件（认证、限流等）
 │   │       ├── errors/                   # 自定义错误类
 │   │       ├── queue/                    # 任务队列（Bull/BullMQ）
@@ -135,6 +145,7 @@ Flowise/                                  # 项目根目录（Monorepo）
 │   │       ├── enterprise/               # 企业版功能（RBAC、SSO 等）
 │   │       ├── commands/                 # CLI 命令
 │   │       └── utils/                    # 后端工具函数
+│   │           └── pet/                  # 宠物相关工具函数
 │   │
 │   ├── ui/                               # 前端（React + Vite）
 │   │   └── src/
@@ -221,6 +232,20 @@ Flowise/                                  # 项目根目录（Monorepo）
 │   │       ├── validator.ts              # 输入校验
 │   │       ├── httpSecurity.ts           # HTTP 安全工具
 │   │       └── storage/                  # 文件存储适配器
+│   │
+│   ├── flowise-pet-nodes/                # Pet 节点插件包
+│   │   ├── flowise-plugin.json           # 插件清单（名称、版本、节点目录）
+│   │   ├── package.json                  # 包配置
+│   │   └── src/
+│   │       ├── nodes/                    # Pet 节点实现
+│   │       │   ├── PetContext.ts         # 宠物上下文节点
+│   │       │   ├── PetCardRecaller.ts    # 卡片召回节点
+│   │       │   ├── PetMemoryRetriever.ts # 记忆检索节点
+│   │       │   ├── PetStateUpdater.ts    # 状态更新节点
+│   │       │   ├── PetCardSaver.ts       # 卡片保存节点
+│   │       │   └── Pet.svg               # 节点图标
+│   │       ├── helpers/                  # 辅助函数
+│   │       └── i18n/                     # 国际化资源
 │   │
 │   ├── agentflow/                        # AgentFlow 前端 SDK 包
 │   │   └── src/

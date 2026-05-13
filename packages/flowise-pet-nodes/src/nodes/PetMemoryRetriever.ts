@@ -19,7 +19,7 @@ class PetMemoryRetriever_Agentflow implements INode {
         this.name = 'petMemoryRetrieverAgentflow'
         this.version = 1.0
         this.type = 'PetMemoryRetriever'
-        this.category = 'Agent Flows'
+        this.category = 'Pet'
         this.icon = 'Pet.svg'
         this.description =
             'Retrieves relevant PetMemory records via cosine similarity, then builds the complete ' +

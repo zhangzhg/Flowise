@@ -68,9 +68,11 @@ function AddNodesDrawerComponent({ nodes, onDragStart, onNodeClick }: AddNodesDr
         Object.keys(grouped).forEach((category) => {
             expanded[category] = expandAll
         })
-        // Always expand 'Agent Flows' by default
-        if (expanded['Agent Flows'] !== undefined) {
-            expanded['Agent Flows'] = true
+        // Always expand these categories by default
+        for (const cat of ['Agent Flows', 'Pet']) {
+            if (expanded[cat] !== undefined) {
+                expanded[cat] = true
+            }
         }
         setCategoryExpanded(expanded)
     }, [])
