@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "lib": ["ES2020", "ES2021.String"],
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "target": "ES2020",
+        "outDir": "./dist/",
+        "rootDir": "./src",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "strictPropertyInitialization": false,
+        "useUnknownInCatchVariables": false,
+        "declaration": true,
+        "module": "commonjs",
+        "moduleResolution": "node"
+    },
+    "include": ["src"],
+    "exclude": ["node_modules", "dist"]
+}

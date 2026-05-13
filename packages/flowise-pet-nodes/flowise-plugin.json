@@ -1,0 +1,8 @@
+{
+    "name": "flowise-pet-nodes",
+    "version": "1.0.0",
+    "displayName": "Pet Nodes",
+    "description": "PetContext, PetCardRecaller, PetMemoryRetriever and PetStateUpdater agentflow nodes — the composable building blocks for the AI Pet system.",
+    "nodesDir": "dist/nodes",
+    "i18nDir": "src/i18n/locales"
+}

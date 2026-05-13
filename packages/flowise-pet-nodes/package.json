@@ -1,0 +1,21 @@
+{
+    "name": "flowise-pet-nodes",
+    "version": "1.0.0",
+    "description": "Flowise plugin: Pet agentflow nodes",
+    "main": "dist/nodes/index.js",
+    "scripts": {
+        "build": "tsc --project tsconfig.json",
+        "build:watch": "tsc --project tsconfig.json --watch"
+    },
+    "peerDependencies": {
+        "flowise-components": "*"
+    },
+    "dependencies": {
+        "@langchain/core": "^0.3.0",
+        "typeorm": "^0.3.0"
+    },
+    "devDependencies": {
+        "flowise-components": "workspace:*",
+        "typescript": "^5.0.0"
+    }
+}

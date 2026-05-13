@@ -64,6 +64,9 @@ const Executions = Loadable(lazy(() => import('@/views/agentexecutions')))
 // pet routing
 const PetPage = Loadable(lazy(() => import('@/views/pet')))
 
+// plugins routing
+const Plugins = Loadable(lazy(() => import('@/views/plugins')))
+
 // enterprise features
 const UsersPage = Loadable(lazy(() => import('@/views/users')))
 const RolesPage = Loadable(lazy(() => import('@/views/roles')))
@@ -354,6 +357,10 @@ const MainRoutes = {
                     <PetPage />
                 </RequireAuth>
             )
+        },
+        {
+            path: '/plugins',
+            element: <Plugins />
         }
     ]
 }

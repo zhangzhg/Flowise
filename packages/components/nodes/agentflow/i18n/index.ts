@@ -3,9 +3,10 @@ import zhLocale from './locales/zh.json'
 
 type LocaleCode = 'en' | 'zh'
 
-const locales: Record<LocaleCode, typeof enLocale> = {
-    en: enLocale,
-    zh: zhLocale
+// Mutable so plugins can deep-merge their own translations at runtime.
+const locales: Record<LocaleCode, Record<string, any>> = {
+    en: JSON.parse(JSON.stringify(enLocale)),
+    zh: JSON.parse(JSON.stringify(zhLocale))
 }
 
 const DEFAULT_LOCALE: LocaleCode = 'en'
@@ -131,6 +132,22 @@ export function getPlaceholderTranslation(nodeName: string, placeholderName: str
 export function getOutputTranslation(nodeName: string, outputName: string, locale: LocaleCode = DEFAULT_LOCALE): string {
     const key = `nodes.${nodeName}.outputs.${outputName}`
     return translate(key, locale)
+}
+
+function deepMerge(target: Record<string, any>, source: Record<string, any>): void {
+    for (const key of Object.keys(source)) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+            if (!target[key] || typeof target[key] !== 'object') target[key] = {}
+            deepMerge(target[key], source[key])
+        } else {
+            target[key] = source[key]
+        }
+    }
+}
+
+export function mergePluginTranslations(en: Record<string, any>, zh: Record<string, any>): void {
+    deepMerge(locales.en, en)
+    deepMerge(locales.zh, zh)
 }
 
 export { LocaleCode, locales }

@@ -24,7 +24,8 @@ import {
     IconFileDatabase,
     IconShieldLock,
     IconListCheck,
-    IconPaw
+    IconPaw,
+    IconPlug
 } from '@tabler/icons-react'
 
 // constant
@@ -53,7 +54,8 @@ const icons = {
     IconFileDatabase,
     IconShieldLock,
     IconListCheck,
-    IconPaw
+    IconPaw,
+    IconPlug
 }
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
@@ -166,6 +168,14 @@ const dashboard = {
                     icon: icons.IconPaw,
                     breadcrumbs: true,
                     permission: 'pet:view'
+                },
+                {
+                    id: 'plugins',
+                    title: 'Plugins',
+                    type: 'item',
+                    url: '/plugins',
+                    icon: icons.IconPlug,
+                    breadcrumbs: true
                 }
             ]
         },

@@ -1,0 +1,47 @@
+{
+    "nodes": {
+        "petContext": {
+            "label": "Pet Context",
+            "description": "Loads Pet state from DB, detects trigger type, and routes to the correct downstream branch",
+            "inputs": {
+                "petUserId": "User ID",
+                "petInput": "Pet Input"
+            },
+            "descriptions": {
+                "petUserIdDesc": "User ID identifying which Pet to load. Auto-resolved from overrideConfig.petUserId.",
+                "petInputDesc": "User message to the pet"
+            },
+            "outputs": {
+                "consolidate": "Background memory-consolidation trigger",
+                "teach": "Teaching command detected (e.g. 跟我读 / 教你做)",
+                "egg": "Egg stage — no LLM, primitive sound only",
+                "babble": "Babble stage — card recall, no LLM",
+                "llm": "Echo / Talk stage — LLM with few-shot & memory",
+                "agent": "Mature stage — LLM + tool calling"
+            }
+        },
+        "petCardRecaller": {
+            "label": "Pet Card Recaller",
+            "description": "Embeds user input and recalls matching Cards (vocab/phrase/action). Babble branch: sets petResponse. LLM/Agent branches: sets queryEmbedding + fewShotMatches + recentVocab.",
+            "inputs": {
+                "petEmbeddingModel": "Embedding Model"
+            }
+        },
+        "petMemoryRetriever": {
+            "label": "Pet Memory Retriever",
+            "description": "Retrieves relevant PetMemory records via cosine similarity, then builds the complete system prompt (stage + memory + few-shot examples) for the downstream LLM / Agent node."
+        },
+        "petStateUpdater": {
+            "label": "Pet State Updater",
+            "description": "Terminal node for LLM/Agent branches. Saves PetChatMessages, triggers personality drift and optional memory consolidation (all fire-and-forget), then streams the reply.",
+            "inputs": {
+                "petStateUpdaterReply": "Reply",
+                "petChatModel": "Chat Model (optional)"
+            },
+            "descriptions": {
+                "petStateUpdaterReplyDesc": "Connect to the LLM or Agent node output that produced the pet reply",
+                "petChatModelDesc": "Required for personality drift. Connect the same model used in the LLM/Agent node."
+            }
+        }
+    }
+}

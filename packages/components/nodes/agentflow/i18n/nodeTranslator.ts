@@ -1,5 +1,5 @@
 import { INode, INodeOptionsValue, INodeOutputsValue, INodeParams } from '../../../src/Interface'
-import { LocaleCode, parseAcceptLanguage, translate } from './index'
+import { LocaleCode, parseAcceptLanguage, translate, mergePluginTranslations } from './index'
 
 const NODE_NAME_MAP: Record<string, string> = {
     agentAgentflow: 'agent',
@@ -145,4 +145,4 @@ export function getLocaleFromAcceptLanguage(acceptLanguage: string | undefined):
     return parseAcceptLanguage(acceptLanguage)
 }
 
-export { LocaleCode }
+export { LocaleCode, mergePluginTranslations }

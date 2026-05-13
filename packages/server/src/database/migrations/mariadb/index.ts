@@ -48,6 +48,8 @@ import { AddPetAndCard1768000000000 } from './1768000000000-AddPetAndCard'
 import { AddPetFlowId1768100000000 } from './1768100000000-AddPetFlowId'
 import { AddFlowSchedule1769200000000 } from './1769200000000-AddFlowSchedule'
 import { AddIntentSkillBinding1769300000000 } from './1769300000000-AddIntentSkillBinding'
+import { AddPlugin1769400000000 } from './1769400000000-AddPlugin'
+import { AddPetMemory1769500000000 } from './1769500000000-AddPetMemory'
 
 import { AddAuthTables1720230151482 } from '../../../enterprise/database/migrations/mariadb/1720230151482-AddAuthTables'
 import { AddWorkspace1725437498242 } from '../../../enterprise/database/migrations/mariadb/1725437498242-AddWorkspace'
@@ -122,5 +124,7 @@ export const mariadbMigrations = [
     AddPetAndCard1768000000000,
     AddPetFlowId1768100000000,
     AddFlowSchedule1769200000000,
-    AddIntentSkillBinding1769300000000
+    AddIntentSkillBinding1769300000000,
+    AddPlugin1769400000000,
+    AddPetMemory1769500000000
 ]

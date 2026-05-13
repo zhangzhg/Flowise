@@ -23,6 +23,7 @@ import { PetChatMessage } from './PetChatMessage'
 import { PetMemory } from './PetMemory'
 import { FlowSchedule } from './FlowSchedule'
 import { IntentSkillBinding } from './IntentSkillBinding'
+import { Plugin } from './Plugin'
 import { LoginActivity, WorkspaceShared, WorkspaceUsers } from '../../enterprise/database/entities/EnterpriseEntities'
 import { User } from '../../enterprise/database/entities/user.entity'
 import { Organization } from '../../enterprise/database/entities/organization.entity'
@@ -63,6 +64,7 @@ export const entities = {
     PetMemory,
     FlowSchedule,
     IntentSkillBinding,
+    Plugin,
     Organization,
     Role,
     OrganizationUser,

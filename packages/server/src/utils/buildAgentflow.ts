@@ -770,7 +770,8 @@ async function determineNodesToIgnore(
     const isDecisionNode =
         currentNode.data.name === 'conditionAgentflow' ||
         currentNode.data.name === 'conditionAgentAgentflow' ||
-        currentNode.data.name === 'humanInputAgentflow'
+        currentNode.data.name === 'humanInputAgentflow' ||
+        currentNode.data.name === 'petContextAgentflow'
 
     if (isDecisionNode && result.output?.conditions) {
         const outputConditions: ICondition[] = result.output.conditions

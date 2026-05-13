@@ -10,7 +10,7 @@ import { getErrorMessage } from '../../errors/utils'
 import { OMIT_QUEUE_JOB_DATA } from '../../utils/constants'
 import { executeCustomNodeFunction } from '../../utils/executeCustomNodeFunction'
 
-const AGENT_FLOWS_CATEGORY = 'Agent Flows'
+const TRANSLATABLE_CATEGORIES = new Set(['Agent Flows', 'Pet'])
 
 const getAllNodes = async (client?: ClientType, locale?: LocaleCode) => {
     try {
@@ -19,7 +19,7 @@ const getAllNodes = async (client?: ClientType, locale?: LocaleCode) => {
         for (const nodeName in appServer.nodesPool.componentNodes) {
             const clonedNode = cloneDeep(appServer.nodesPool.componentNodes[nodeName])
             let filteredNode = filterNodeByClient(clonedNode, client)
-            if (locale && filteredNode.category === AGENT_FLOWS_CATEGORY) {
+            if (locale && TRANSLATABLE_CATEGORIES.has(filteredNode.category)) {
                 filteredNode = translateNode(filteredNode, locale)
             }
             dbResponse.push(filteredNode)
@@ -39,7 +39,7 @@ const getAllNodesForCategory = async (category: string, client?: ClientType, loc
             if (componentNode.category === category) {
                 const clonedNode = cloneDeep(componentNode)
                 let filteredNode = filterNodeByClient(clonedNode, client)
-                if (locale && filteredNode.category === AGENT_FLOWS_CATEGORY) {
+                if (locale && TRANSLATABLE_CATEGORIES.has(filteredNode.category)) {
                     filteredNode = translateNode(filteredNode, locale)
                 }
                 dbResponse.push(filteredNode)
@@ -60,7 +60,7 @@ const getNodeByName = async (nodeName: string, client?: ClientType, locale?: Loc
         if (Object.prototype.hasOwnProperty.call(appServer.nodesPool.componentNodes, nodeName)) {
             const clonedNode = cloneDeep(appServer.nodesPool.componentNodes[nodeName])
             let filteredNode = filterNodeByClient(clonedNode, client)
-            if (locale && filteredNode.category === AGENT_FLOWS_CATEGORY) {
+            if (locale && TRANSLATABLE_CATEGORIES.has(filteredNode.category)) {
                 filteredNode = translateNode(filteredNode, locale)
             }
             return filteredNode

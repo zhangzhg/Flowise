@@ -1,0 +1,47 @@
+{
+    "nodes": {
+        "petContext": {
+            "label": "宠物上下文",
+            "description": "从数据库加载宠物状态，检测触发类型，并路由到对应的下游分支",
+            "inputs": {
+                "petUserId": "用户 ID",
+                "petInput": "宠物输入"
+            },
+            "descriptions": {
+                "petUserIdDesc": "标识要加载哪只宠物的用户 ID，可从 overrideConfig.petUserId 自动解析。",
+                "petInputDesc": "用户发给宠物的消息"
+            },
+            "outputs": {
+                "consolidate": "后台记忆整合触发",
+                "teach": "检测到教学指令（如 跟我读 / 教你做）",
+                "egg": "蛋阶段 — 无 LLM，仅原始音",
+                "babble": "牙牙学语阶段 — 卡片召回，无 LLM",
+                "llm": "学语 / 对话阶段 — LLM + 少样本示例 & 记忆",
+                "agent": "成熟阶段 — LLM + 工具调用"
+            }
+        },
+        "petCardRecaller": {
+            "label": "宠物卡片召回器",
+            "description": "嵌入用户输入并召回匹配的卡片（词汇 / 短语 / 动作）。牙牙学语分支：设置 petResponse；LLM/Agent 分支：设置 queryEmbedding + fewShotMatches + recentVocab。",
+            "inputs": {
+                "petEmbeddingModel": "嵌入模型"
+            }
+        },
+        "petMemoryRetriever": {
+            "label": "宠物记忆检索器",
+            "description": "通过余弦相似度检索相关 PetMemory 记录，然后为下游 LLM / Agent 节点构建完整的系统提示（阶段 + 记忆 + 少样本示例）。"
+        },
+        "petStateUpdater": {
+            "label": "宠物状态更新器",
+            "description": "LLM/Agent 分支的终端节点。保存 PetChatMessage，触发性格漂移和可选的记忆整合（均为即发即忘），然后流式输出回复。",
+            "inputs": {
+                "petStateUpdaterReply": "回复",
+                "petChatModel": "对话模型（可选）"
+            },
+            "descriptions": {
+                "petStateUpdaterReplyDesc": "连接到生成宠物回复的 LLM 或 Agent 节点输出",
+                "petChatModelDesc": "性格漂移所需，连接与 LLM/Agent 节点中相同的模型。"
+            }
+        }
+    }
+}

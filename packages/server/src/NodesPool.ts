@@ -3,14 +3,23 @@ import path from 'path'
 import { Dirent } from 'fs'
 import { getNodeModulesPackagePath } from './utils'
 import { promises } from 'fs'
-import { ICommonObject } from 'flowise-components'
+import { ICommonObject, mergePluginTranslations } from 'flowise-components'
 import logger from './utils/logger'
 import { appConfig } from './AppConfig'
+
+export interface IPlugin {
+    id: string
+    name: string
+    installPath: string
+    i18nPath?: string | null
+    enabled: boolean
+}
 
 export class NodesPool {
     componentNodes: IComponentNodes = {}
     componentCredentials: IComponentCredentials = {}
     private credentialIconPath: ICommonObject = {}
+    private pluginNodeNames: Map<string, string[]> = new Map()
 
     /**
      * Initialize to get all nodes & credentials
@@ -91,6 +100,61 @@ export class NodesPool {
     }
 
     /**
+     * Hot-load a plugin's nodes into the pool and merge its i18n translations.
+     * Idempotent: re-loading the same plugin replaces its previous nodes.
+     */
+    async loadPlugin(plugin: IPlugin): Promise<void> {
+        if (!plugin.enabled) return
+
+        // Unload existing nodes for this plugin first (handles reload scenario)
+        this.unloadPlugin(plugin.id)
+
+        const nodes = await this.loadNodesFromDir(plugin.installPath)
+        const loadedNames = Object.keys(nodes)
+        Object.assign(this.componentNodes, nodes)
+        this.pluginNodeNames.set(plugin.id, loadedNames)
+
+        if (plugin.i18nPath) {
+            await this.mergePluginI18n(plugin.i18nPath)
+        }
+
+        logger.info(`🔌 [plugin]: Loaded ${loadedNames.length} node(s) from plugin "${plugin.name}"`)
+    }
+
+    /**
+     * Return the number of nodes currently loaded for a given plugin.
+     */
+    pluginNodeCount(pluginId: string): number {
+        return (this.pluginNodeNames.get(pluginId) ?? []).length
+    }
+
+    /**
+     * Remove a plugin's nodes from the pool.
+     */
+    unloadPlugin(pluginId: string): void {
+        const names = this.pluginNodeNames.get(pluginId) ?? []
+        for (const name of names) {
+            delete this.componentNodes[name]
+        }
+        this.pluginNodeNames.delete(pluginId)
+    }
+
+    /**
+     * Load all enabled plugins. Called once during server init.
+     */
+    async loadAllPlugins(plugins: IPlugin[]): Promise<void> {
+        for (const plugin of plugins) {
+            if (plugin.enabled) {
+                try {
+                    await this.loadPlugin(plugin)
+                } catch (err) {
+                    logger.error(`❌ [plugin]: Failed to load plugin "${plugin.name}":`, err)
+                }
+            }
+        }
+    }
+
+    /**
      * Initialize credentials
      */
     private async initializeCredentials() {
@@ -109,6 +173,18 @@ export class NodesPool {
                 }
             })
         )
+    }
+
+    private async mergePluginI18n(i18nPath: string): Promise<void> {
+        try {
+            const [enRaw, zhRaw] = await Promise.all([
+                promises.readFile(path.join(i18nPath, 'en.json'), 'utf-8').catch(() => '{}'),
+                promises.readFile(path.join(i18nPath, 'zh.json'), 'utf-8').catch(() => '{}')
+            ])
+            mergePluginTranslations(JSON.parse(enRaw), JSON.parse(zhRaw))
+        } catch (err) {
+            logger.warn(`⚠️  [plugin]: Could not merge i18n from "${i18nPath}":`, err)
+        }
     }
 
     /**

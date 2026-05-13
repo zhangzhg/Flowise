@@ -101,6 +101,17 @@ export class App {
             await this.nodesPool.initialize()
             logger.info('🔧 [server]: Nodes pool initialized successfully')
 
+            // Initialize plugin nodes (hot-load enabled plugins from DB)
+            try {
+                const { Plugin } = await import('./database/entities/Plugin')
+                const pluginRepo = this.AppDataSource.getRepository(Plugin)
+                const plugins = await pluginRepo.find({ where: { enabled: true } })
+                await this.nodesPool.loadAllPlugins(plugins)
+                logger.info(`🔌 [server]: Plugin nodes initialized (${plugins.length} plugin(s))`)
+            } catch (err) {
+                logger.warn('⚠️  [server]: Plugin initialization skipped:', err)
+            }
+
             // Initialize abort controllers pool
             this.abortControllerPool = new AbortControllerPool()
             logger.info('⏹️ [server]: Abort controllers pool initialized successfully')

@@ -22,7 +22,8 @@
         "others": "Others",
         "logs": "Logs",
         "accountSettings": "Account Settings",
-        "pet": "My Pet"
+        "pet": "My Pet",
+        "plugins": "Plugins"
     },
     "header": {
         "star": "Star",

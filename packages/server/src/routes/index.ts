@@ -58,6 +58,7 @@ import textToSpeechRouter from './text-to-speech'
 import mcpServerRouter from './mcp-server'
 import mcpEndpointRouter from './mcp-endpoint'
 import petRouter from './pet'
+import pluginsRouter from './plugins'
 import schedulesRouter from './schedules'
 import skillBindingsRouter from './skillBindings'
 
@@ -132,6 +133,7 @@ router.use('/text-to-speech', textToSpeechRouter)
 router.use('/mcp-server', mcpServerRouter)
 router.use('/mcp', mcpEndpointRouter)
 router.use('/pet', petRouter)
+router.use('/plugins', pluginsRouter)
 router.use('/pets', skillBindingsRouter)
 router.use('/schedules', schedulesRouter)
 

@@ -22,7 +22,8 @@
         "others": "其他",
         "logs": "日志",
         "accountSettings": "账号设置",
-        "pet": "我的宠物"
+        "pet": "我的宠物",
+        "plugins": "插件"
     },
     "header": {
         "star": "星标",
